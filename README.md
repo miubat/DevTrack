@@ -20,7 +20,7 @@ A database is not needed yet.
 Clone the repository:
 
 ```bash
-git clone <repository-url> DevTrack
+git clone https://github.com/miubat/DevTrack.git DevTrack
 cd DevTrack
 ```
 
@@ -53,6 +53,11 @@ The default values in `.env.example` work as they are. You do not need to edit y
 - http://localhost:5173 shows the DevTrack home page.
 - http://localhost:5173/anything shows the "not found" page.
 - http://localhost:3000 shows `Hello World!`.
+
+
+## Branches
+ 
+Work on a branch named `feature/AGL-xx-short-name`, then open a pull request to `main`.
 
 ## Troubleshooting
 
