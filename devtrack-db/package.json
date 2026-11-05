@@ -1,0 +1,21 @@
+{
+  "name": "devtrack-db",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DevTrack local PostgreSQL 16 and migrations (AGL-04.1)",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:migrate": "prisma migrate deploy",
+    "db:setup": "npm run db:up && npm run db:migrate",
+    "db:reset": "docker compose down -v && npm run db:setup",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  }
+}
