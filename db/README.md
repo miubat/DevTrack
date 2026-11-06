@@ -1,0 +1,29 @@
+{
+  "name": "devtrack-db",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DevTrack local PostgreSQL 16, migrations and seed data (AGL-04)",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "db:setup": "npm run db:up && npm run db:migrate && npm run db:seed",
+    "db:reset": "docker compose down -v && npm run db:setup",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "argon2": "^0.45.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "prisma": "^5.22.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.6.3"
+  }
+}
