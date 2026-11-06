@@ -21,10 +21,11 @@ Each line shows `[PASS]`, `[FAIL]` or `[SKIP]`. A `[FAIL]` line tells you what t
 | -------------------------- | ------------------------------------------------------------------- |
 | Node.js 20+                | Install the LTS from https://nodejs.org and reopen the terminal     |
 | Docker running             | Install Docker Desktop and open it, then wait until it says Running |
-| backend / frontend .env    | `cp .env.example .env` (PowerShell: `Copy-Item .env.example .env`)  |
-| Database container running | `docker compose up -d`                                              |
-| Migrations applied         | `cd backend` then `npx prisma migrate dev`                          |
-| Seed data loaded           | `cd backend` then `npx prisma db seed`                              |
+| npm install                | `cd <folder>` then `npm install`                                    |
+| .env file                  | `cp .env.example .env` (PowerShell: `Copy-Item .env.example .env`)  |
+| Database container running | `cd devtrack-db` then `npm run db:setup`                            |
+| Migrations applied         | `cd devtrack-db` then `npm run db:migrate`                          |
+| Seed data loaded           | Run the seed command from the database README once it is added      |
 
 ## Results
 

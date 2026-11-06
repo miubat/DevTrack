@@ -9,7 +9,13 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const results = [];
 
 function run(command, cwd = root) {
-  const r = spawnSync(command, { cwd, shell: true, encoding: 'utf8' });
+  const r = spawnSync(command, {
+    cwd,
+    shell: true,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    timeout: 60000,
+  });
   return { ok: r.status === 0, out: (r.stdout ?? '').trim() };
 }
 
@@ -26,13 +32,28 @@ function major(version) {
   return Number(version.replace(/^v/, '').split('.')[0]);
 }
 
-function databaseUrl() {
-  const envFile = join(root, 'backend', '.env');
+function hasComposeFile(dir) {
+  return ['docker-compose.yml', 'compose.yml'].some((f) =>
+    existsSync(join(root, dir, f)),
+  );
+}
+
+function databaseUrl(dir) {
+  const envFile = join(root, dir, '.env');
   if (!existsSync(envFile)) return null;
   const line = readFileSync(envFile, 'utf8')
     .split(/\r?\n/)
     .find((l) => l.startsWith('DATABASE_URL='));
-  return line ? new URL(line.slice('DATABASE_URL='.length).trim()) : null;
+  if (!line) return null;
+  const value = line.slice('DATABASE_URL='.length).trim().replace(/^"|"$/g, '');
+  return new URL(value);
+}
+
+function hasSeedScript(dir) {
+  const pkgFile = join(root, dir, 'package.json');
+  if (!existsSync(pkgFile)) return false;
+  const pkg = JSON.parse(readFileSync(pkgFile, 'utf8'));
+  return Boolean(pkg.prisma?.seed || pkg.scripts?.['db:seed']);
 }
 
 check('Node.js 20+', () => [
@@ -63,7 +84,11 @@ check('Docker Compose', () => {
   return [r.ok ? 'pass' : 'fail', r.ok ? r.out : 'docker compose not found'];
 });
 
-for (const app of ['backend', 'frontend']) {
+const dbDir = ['devtrack-db', '.', 'backend'].find(hasComposeFile);
+const apps = ['backend', 'frontend'];
+if (dbDir && dbDir !== '.' && dbDir !== 'backend') apps.push(dbDir);
+
+for (const app of apps) {
   check(`${app}: npm install`, () =>
     existsSync(join(root, app, 'node_modules'))
       ? ['pass', 'node_modules found']
@@ -76,39 +101,41 @@ for (const app of ['backend', 'frontend']) {
   );
 }
 
-const hasCompose =
-  existsSync(join(root, 'docker-compose.yml')) ||
-  existsSync(join(root, 'compose.yml'));
-const hasPrisma = existsSync(join(root, 'backend', 'prisma', 'schema.prisma'));
+const dbPath = dbDir ? join(root, dbDir) : root;
+const hasPrisma =
+  Boolean(dbDir) && existsSync(join(dbPath, 'prisma', 'schema.prisma'));
 
 check('Database container running', () => {
-  if (!hasCompose) return ['skip', 'no docker-compose.yml yet (AGL-04)'];
-  const r = run('docker compose ps --status running --services');
+  if (!dbDir) return ['skip', 'no docker-compose.yml yet (AGL-04)'];
+  const r = run('docker compose ps --status running --services', dbPath);
   const running = r.ok && r.out.split(/\r?\n/).includes(DB_SERVICE);
   return running
     ? ['pass', `service "${DB_SERVICE}" is running`]
-    : ['fail', 'run: docker compose up -d'];
+    : ['fail', `run: cd ${dbDir}; docker compose up -d`];
 });
 
 check('Migrations applied', () => {
   if (!hasPrisma) return ['skip', 'no Prisma schema yet (AGL-04)'];
-  const r = run('npx prisma migrate status', join(root, 'backend'));
+  if (!existsSync(join(dbPath, 'node_modules')))
+    return ['fail', `run: cd ${dbDir}; npm install`];
+  const r = run('npx --no-install prisma migrate status', dbPath);
   return r.ok
     ? ['pass', 'database schema is up to date']
-    : ['fail', 'run: cd backend; npx prisma migrate dev'];
+    : ['fail', `run: cd ${dbDir}; npx prisma migrate deploy`];
 });
 
 check('Seed data loaded', () => {
-  if (!hasCompose || !hasPrisma)
-    return ['skip', 'no database setup yet (AGL-04)'];
-  const url = databaseUrl();
-  if (!url) return ['fail', 'DATABASE_URL missing in backend/.env'];
+  if (!hasPrisma) return ['skip', 'no database setup yet (AGL-04)'];
+  if (!hasSeedScript(dbDir)) return ['skip', 'no seed script yet (AGL-04)'];
+  const url = databaseUrl(dbDir);
+  if (!url) return ['fail', `DATABASE_URL missing in ${dbDir}/.env`];
   const user = decodeURIComponent(url.username);
   const db = url.pathname.slice(1);
   const sql =
     'SELECT (SELECT count(*) FROM users), (SELECT count(*) FROM projects), (SELECT count(*) FROM issues)';
   const r = run(
     `docker compose exec -T ${DB_SERVICE} psql -U ${user} -d ${db} -At -F , -c "${sql}"`,
+    dbPath,
   );
   if (!r.ok) return ['fail', 'could not read the database'];
   const [users, projects, issues] = r.out.split(',').map(Number);
