@@ -56,10 +56,11 @@ function hasSeedScript(dir) {
   return Boolean(pkg.prisma?.seed || pkg.scripts?.['db:seed']);
 }
 
-check('Node.js 20+', () => [
-  major(process.version) >= 20 ? 'pass' : 'fail',
-  process.version,
-]);
+check('Node.js 20.19+', () => {
+  const [maj, min] = process.version.slice(1).split('.').map(Number);
+  const ok = maj > 20 || (maj === 20 && min >= 19);
+  return [ok ? 'pass' : 'fail', process.version];
+});
 
 check('npm 10+', () => {
   const r = run('npm -v');
