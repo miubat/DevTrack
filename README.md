@@ -81,7 +81,7 @@ The frontend has no tests yet, so it has no `npm test`.
 
 ## Branches
 
-Work on a branch named `feature/AGL-xx-short-name`, then open a pull request to `main`.
+Work on a branch named `feature/AGL-xx-short-name`, then open a pull request to `master`.
 
 ## Troubleshooting
 
