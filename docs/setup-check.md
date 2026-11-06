@@ -23,9 +23,9 @@ Each line shows `[PASS]`, `[FAIL]` or `[SKIP]`. A `[FAIL]` line tells you what t
 | Docker running             | Install Docker Desktop and open it, then wait until it says Running |
 | npm install                | `cd <folder>` then `npm install`                                    |
 | .env file                  | `cp .env.example .env` (PowerShell: `Copy-Item .env.example .env`)  |
-| Database container running | `cd devtrack-db` then `npm run db:setup`                            |
-| Migrations applied         | `cd devtrack-db` then `npm run db:migrate`                          |
-| Seed data loaded           | Run the seed command from the database README once it is added      |
+| Database container running | `cd db` then `npm run db:setup`                                     |
+| Migrations applied         | `cd db` then `npm run db:migrate`                                   |
+| Seed data loaded           | `cd db` then `npm run db:seed`                                      |
 
 ## Results
 

@@ -84,7 +84,7 @@ check('Docker Compose', () => {
   return [r.ok ? 'pass' : 'fail', r.ok ? r.out : 'docker compose not found'];
 });
 
-const dbDir = ['devtrack-db', '.', 'backend'].find(hasComposeFile);
+const dbDir = ['db', 'devtrack-db', '.', 'backend'].find(hasComposeFile);
 const apps = ['backend', 'frontend'];
 if (dbDir && dbDir !== '.' && dbDir !== 'backend') apps.push(dbDir);
 
