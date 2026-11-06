@@ -1,0 +1,242 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SystemRole {
+  ADMIN
+  PROJECT_MANAGER
+  TEAM_MEMBER
+
+  @@map("system_role")
+}
+
+enum IssueType {
+  STORY
+  TASK
+  BUG
+
+  @@map("issue_type")
+}
+
+enum IssueStatus {
+  TO_DO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+
+  @@map("issue_status")
+}
+
+enum Priority {
+  LOWEST
+  LOW
+  MEDIUM
+  HIGH
+  HIGHEST
+
+  @@map("priority")
+}
+
+enum Severity {
+  MINOR
+  MAJOR
+  CRITICAL
+  BLOCKER
+
+  @@map("severity")
+}
+
+enum SprintStatus {
+  PLANNED
+  ACTIVE
+  CLOSED
+
+  @@map("sprint_status")
+}
+
+model User {
+  id           BigInt     @id @default(autoincrement())
+  fullName     String     @map("full_name") @db.VarChar(120)
+  email        String     @unique @db.VarChar(254)
+  passwordHash String     @map("password_hash")
+  role         SystemRole @default(TEAM_MEMBER)
+  isActive     Boolean    @default(true) @map("is_active")
+  mustResetPw  Boolean    @default(true) @map("must_reset_pw")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  managedProjects Project[]
+  memberships     ProjectMember[]
+  assignedIssues  Issue[]         @relation("IssueAssignee")
+  reportedIssues  Issue[]         @relation("IssueReporter")
+  createdLinks    IssueLink[]
+  comments        Comment[]
+  activities      Activity[]
+
+  @@map("users")
+}
+
+model Project {
+  id              BigInt   @id @default(autoincrement())
+  key             String   @db.VarChar(10)
+  name            String   @db.VarChar(120)
+  description     String   @default("")
+  objectives      String   @default("")
+  startDate       DateTime @map("start_date") @db.Date
+  endDate         DateTime @map("end_date") @db.Date
+  managerId       BigInt   @map("manager_id")
+  nextIssueNumber Int      @default(1) @map("next_issue_number")
+  isArchived      Boolean  @default(false) @map("is_archived")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  manager    User            @relation(fields: [managerId], references: [id])
+  members    ProjectMember[]
+  issues     Issue[]
+  sprints    Sprint[]
+  activities Activity[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  projectId BigInt   @map("project_id")
+  userId    BigInt   @map("user_id")
+  addedAt   DateTime @default(now()) @map("added_at") @db.Timestamptz(6)
+
+  project Project @relation(fields: [projectId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@id([projectId, userId])
+  @@map("project_members")
+}
+
+model Issue {
+  id          BigInt      @id @default(autoincrement())
+  projectId   BigInt      @map("project_id")
+  number      Int
+  type        IssueType
+  title       String      @db.VarChar(200)
+  description String      @default("")
+  status      IssueStatus @default(TO_DO)
+  priority    Priority    @default(MEDIUM)
+  storyPoints Int?        @map("story_points") @db.SmallInt
+  assigneeId  BigInt?     @map("assignee_id")
+  reporterId  BigInt      @map("reporter_id")
+  backlogRank Decimal     @map("backlog_rank") @db.Decimal(20, 10)
+  version     Int         @default(1)
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  doneAt      DateTime?   @map("done_at") @db.Timestamptz(6)
+
+  project      Project       @relation(fields: [projectId], references: [id])
+  assignee     User?         @relation("IssueAssignee", fields: [assigneeId], references: [id])
+  reporter     User          @relation("IssueReporter", fields: [reporterId], references: [id])
+  bugDetails   BugDetail?
+  bugLinks     IssueLink[]   @relation("LinkBug")
+  storyLinks   IssueLink[]   @relation("LinkStory")
+  sprintIssues SprintIssue[]
+  comments     Comment[]
+
+  @@unique([projectId, number])
+  @@index([projectId, status, type, priority, assigneeId], map: "issues_filter")
+  @@index([projectId, backlogRank], map: "issues_rank")
+  @@map("issues")
+}
+
+model BugDetail {
+  issueId          BigInt   @id @map("issue_id")
+  environment      String   @db.VarChar(255)
+  stepsToReproduce String   @map("steps_to_reproduce")
+  expectedResult   String   @map("expected_result")
+  actualResult     String   @map("actual_result")
+  severity         Severity
+
+  issue Issue @relation(fields: [issueId], references: [id])
+
+  @@map("bug_details")
+}
+
+model IssueLink {
+  bugId     BigInt   @map("bug_id")
+  storyId   BigInt   @map("story_id")
+  createdBy BigInt   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  bug     Issue @relation("LinkBug", fields: [bugId], references: [id])
+  story   Issue @relation("LinkStory", fields: [storyId], references: [id])
+  creator User  @relation(fields: [createdBy], references: [id])
+
+  @@id([bugId, storyId])
+  @@map("issue_links")
+}
+
+model Sprint {
+  id              BigInt       @id @default(autoincrement())
+  projectId       BigInt       @map("project_id")
+  name            String       @db.VarChar(80)
+  goal            String       @default("") @db.VarChar(255)
+  startDate       DateTime     @map("start_date") @db.Date
+  endDate         DateTime     @map("end_date") @db.Date
+  status          SprintStatus @default(PLANNED)
+  committedPoints Int?         @map("committed_points")
+  completedPoints Int?         @map("completed_points")
+  startedAt       DateTime?    @map("started_at") @db.Timestamptz(6)
+  closedAt        DateTime?    @map("closed_at") @db.Timestamptz(6)
+
+  project      Project       @relation(fields: [projectId], references: [id])
+  sprintIssues SprintIssue[]
+
+  @@map("sprints")
+}
+
+model SprintIssue {
+  sprintId        BigInt    @map("sprint_id")
+  issueId         BigInt    @map("issue_id")
+  isOpen          Boolean   @default(true) @map("is_open")
+  addedAfterStart Boolean   @default(false) @map("added_after_start")
+  addedAt         DateTime  @default(now()) @map("added_at") @db.Timestamptz(6)
+  removedAt       DateTime? @map("removed_at") @db.Timestamptz(6)
+
+  sprint Sprint @relation(fields: [sprintId], references: [id])
+  issue  Issue  @relation(fields: [issueId], references: [id])
+
+  @@id([sprintId, issueId])
+  @@map("sprint_issues")
+}
+
+model Comment {
+  id        BigInt    @id @default(autoincrement())
+  issueId   BigInt    @map("issue_id")
+  authorId  BigInt    @map("author_id")
+  body      String
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  editedAt  DateTime? @map("edited_at") @db.Timestamptz(6)
+
+  issue  Issue @relation(fields: [issueId], references: [id])
+  author User  @relation(fields: [authorId], references: [id])
+
+  @@map("comments")
+}
+
+model Activity {
+  id         BigInt   @id @default(autoincrement())
+  projectId  BigInt   @map("project_id")
+  entityType String   @map("entity_type") @db.VarChar(20)
+  entityId   BigInt   @map("entity_id")
+  actorId    BigInt   @map("actor_id")
+  action     String   @db.VarChar(40)
+  field      String?  @db.VarChar(40)
+  oldValue   String?  @map("old_value")
+  newValue   String?  @map("new_value")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  project Project @relation(fields: [projectId], references: [id])
+  actor   User    @relation(fields: [actorId], references: [id])
+
+  @@index([entityType, entityId, createdAt], map: "activities_entity")
+  @@map("activities")
+}
