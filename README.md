@@ -54,9 +54,33 @@ The default values in `.env.example` work as they are. You do not need to edit y
 - http://localhost:5173/anything shows the "not found" page.
 - http://localhost:3000 shows `Hello World!`.
 
+The backend may print a `WARN` about empty `OBSERVE_APP_KEY` and `OBSERVE_APP_SECRET`. This is safe to ignore.
+
+## Before you open a pull request
+
+Run these in each folder and make sure they pass.
+
+Backend (`backend/`):
+
+```bash
+npm run lint
+npm run format:check
+npm test
+npm run build
+```
+
+Frontend (`frontend/`):
+
+```bash
+npm run lint
+npm run format:check
+npm run build
+```
+
+The frontend has no tests yet, so it has no `npm test`.
 
 ## Branches
- 
+
 Work on a branch named `feature/AGL-xx-short-name`, then open a pull request to `main`.
 
 ## Troubleshooting
@@ -64,6 +88,6 @@ Work on a branch named `feature/AGL-xx-short-name`, then open a pull request to 
 | Problem                                       | Fix                                                                          |
 | --------------------------------------------- | ---------------------------------------------------------------------------- |
 | `node -v` is below 20                         | Install the current LTS from https://nodejs.org and reopen the terminal.     |
-| `EADDRINUSE` / port already in use            | Stop the other program using that port, then run the command again.          |
+| `EADDRINUSE` / port already in use            | Stop the other program using the port, or change the port: set `PORT` in `backend/.env` (for example `PORT=3001`) and set `VITE_API_URL` in `frontend/.env` to the same port (`http://localhost:3001`). Restart both. |
 | `npm install` fails                           | Delete the `node_modules` folder and run `npm install` again.                |
 | Changed `.env` but nothing changed            | Stop the dev server (Ctrl+C) and start it again.                             |
