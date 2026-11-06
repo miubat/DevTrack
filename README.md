@@ -33,4 +33,15 @@ Backend: http://localhost:3000 · Frontend: http://localhost:5173
 
 ## Branches
 
-Work on a branch named `feature/AGL-xx-short-name`, then open a pull request to `main`.
+- `master`: all task work is merged here first.
+- `main`: stable code only. `master` is merged into `main` after the team checks it.
+
+Start every task from `master`:
+
+```bash
+git checkout master
+git pull
+git checkout -b feature/AGL-xx-short-name
+```
+
+Open the pull request to `master`, not `main`.
