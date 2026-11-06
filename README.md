@@ -1,6 +1,6 @@
 # DevTrack
 
-Agile Project & Issue Management System (Group 4). Requirements are in the SRS.
+Agile Project & Issue Management System. Requirements are in the SRS.
 
 | Folder                | What it is           | Runs on               |
 | --------------------- | -------------------- | --------------------- |
