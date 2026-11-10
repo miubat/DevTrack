@@ -1,0 +1,17 @@
+DROP TABLE IF EXISTS activities;
+DROP TABLE IF EXISTS comments;
+DROP TABLE IF EXISTS sprint_issues;
+DROP TABLE IF EXISTS sprints;
+DROP TABLE IF EXISTS issue_links;
+DROP TABLE IF EXISTS bug_details;
+DROP TABLE IF EXISTS issues;
+DROP TABLE IF EXISTS project_members;
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS users;
+
+DROP TYPE IF EXISTS sprint_status;
+DROP TYPE IF EXISTS severity;
+DROP TYPE IF EXISTS priority;
+DROP TYPE IF EXISTS issue_status;
+DROP TYPE IF EXISTS issue_type;
+DROP TYPE IF EXISTS system_role;
