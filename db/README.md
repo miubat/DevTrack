@@ -33,6 +33,14 @@ npm run db:setup
 
 All seed users share the password `Passw0rd1` (change it with `SEED_PASSWORD`) and do not need a password reset.
 
+## Rolling back migrations
+
+- `npm run db:migrate:down` undoes the latest migration.
+- `npm run db:migrate:down:all` undoes every migration.
+- Run `npm run db:migrate` to apply them again.
+- Each migration folder in `prisma/migrations` needs a matching `prisma/down/<same folder name>/down.sql`.
+- Down migrations delete the data in the tables they drop. They are for local development only.
+
 ## Notes
 
 - Use `prisma migrate deploy` (`npm run db:migrate`). The migrations contain partial indexes and CHECKs that Prisma does not model, so avoid `prisma migrate dev` against this database.

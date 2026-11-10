@@ -8,6 +8,8 @@
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",
     "db:migrate": "prisma migrate deploy",
+    "db:migrate:down": "node scripts/migrate-down.mjs",
+    "db:migrate:down:all": "node scripts/migrate-down.mjs --all",
     "db:seed": "prisma db seed",
     "db:setup": "npm run db:up && npm run db:migrate && npm run db:seed",
     "db:reset": "docker compose down -v && npm run db:setup",
