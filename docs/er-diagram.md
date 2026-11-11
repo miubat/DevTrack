@@ -127,6 +127,8 @@ erDiagram
 
 ## Notes
 - **BR-05:** `UNIQUE (project_id, number)` on `issues` makes issue keys unique per project (e.g. ECOM-101). The number comes from `projects.next_issue_number`, incremented under a row lock. Mermaid cannot draw a composite unique key, so `number` is marked UK with this note.
+- **BR-01:** A project can have only one ACTIVE sprint. Enforced by the partial unique index `one_active_sprint` on `sprints (project_id) WHERE status = 'ACTIVE'`.
+- **BR-11:** An issue can be in only one open (PLANNED or ACTIVE) sprint at a time. Enforced by the partial unique index `one_open_sprint_per_issue` on `sprint_issues (issue_id) WHERE is_open AND removed_at IS NULL`.
 - **Assignee is optional:** `issues.assignee_id` is nullable, so the users side of "assignee" is zero-or-one. `reporter_id` is NOT NULL, so every issue has exactly one reporter.
 - `activities.entity_id` has no foreign key: it points to an issue, sprint, project or comment depending on `entity_type`.
 - `activities` is append-only (UPDATE and DELETE are revoked from the app user, BR-12).
