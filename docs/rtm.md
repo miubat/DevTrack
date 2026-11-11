@@ -10,35 +10,35 @@ Test Status: **Not run** = test cases exist and cover the FR. **Not run (partial
 | FR-AUTH-02 | User administration | MUST |  |  |  | No test case yet |
 | FR-AUTH-03 | Profile and password | MUST |  |  |  | No test case yet |
 | FR-AUTH-04 | Failed-login lockout | SHOULD |  |  |  | No test case yet |
-| FR-PRJ-01 | Create a project | MUST |  | Rahim creates project ECOM and adds 4 members | AGL-02.5 TC-020; AGL-02.5 TC-021; AGL-02.5 TC-023 | Not run (partial) |
-| FR-PRJ-02 | Edit and archive a project | MUST |  |  | AGL-02.5 TC-022; AGL-02.5 TC-024 | Not run |
+| FR-PRJ-01 | Create a project | MUST |  | Rahim creates project ECOM and adds 4 members | TC-AGL-02.5-20; TC-AGL-02.5-21; TC-AGL-02.5-23 | Not run (partial) |
+| FR-PRJ-02 | Edit and archive a project | MUST |  |  | TC-AGL-02.5-22; TC-AGL-02.5-24 | Not run |
 | FR-PRJ-03 | Manage members | MUST |  | Rahim creates project ECOM and adds 4 members |  | No test case yet |
-| FR-PRJ-04 | Project-level access | MUST | Authorization |  | AGL-02.5 TC-004; AGL-02.5 TC-006 | Not run |
-| FR-ISS-01 | Create an issue | MUST |  | Rahim creates ECOM-101 and a task | AGL-02.5 TC-007; AGL-02.5 TC-008 | Not run (partial) |
-| FR-ISS-02 | Edit an issue safely | MUST | No lost updates |  | AGL-10.4 TC-004; AGL-10.4 TC-005; AGL-10.4 TC-006 | Not run |
+| FR-PRJ-04 | Project-level access | MUST | Authorization |  | TC-AGL-02.5-04; TC-AGL-02.5-06 | Not run |
+| FR-ISS-01 | Create an issue | MUST |  | Rahim creates ECOM-101 and a task | TC-AGL-02.5-07; TC-AGL-02.5-08 | Not run (partial) |
+| FR-ISS-02 | Edit an issue safely | MUST | No lost updates |  | TC-AGL-10.4-04; TC-AGL-10.4-05; TC-AGL-10.4-06 | Not run |
 | FR-ISS-03 | Rank the backlog | MUST |  |  |  | No test case yet |
-| FR-ISS-04 | Single assignee and reassignment history | MUST |  |  | AGL-02.5 TC-009 | Not run (partial) |
-| FR-ISS-05 | Story points | MUST |  |  | AGL-02.5 TC-010; AGL-02.5 TC-011 | Not run |
-| FR-ISS-06 | Search, filter and paginate | MUST | Search and filters |  | AGL-02.5 TC-005 | Not run (partial) |
+| FR-ISS-04 | Single assignee and reassignment history | MUST |  |  | TC-AGL-02.5-09 | Not run (partial) |
+| FR-ISS-05 | Story points | MUST |  |  | TC-AGL-02.5-10; TC-AGL-02.5-11 | Not run |
+| FR-ISS-06 | Search, filter and paginate | MUST | Search and filters |  | TC-AGL-02.5-05 | Not run (partial) |
 | FR-ISS-07 | Issue detail | MUST |  |  |  | No test case yet |
 | FR-BUG-01 | Report a bug | MUST |  | Hasan logs a bug and links it to the story |  | No test case yet |
-| FR-BUG-02 | Link a bug to a story | MUST |  | Hasan logs a bug and links it to the story | AGL-02.5 TC-019 | Not run |
+| FR-BUG-02 | Link a bug to a story | MUST |  | Hasan logs a bug and links it to the story | TC-AGL-02.5-19 | Not run |
 | FR-BUG-03 | Defect lifecycle and verification | MUST |  | Hasan logs a bug and links it to the story |  | No test case yet |
-| FR-SPR-01 | Create a sprint | MUST |  |  | AGL-02.5 TC-027; AGL-02.5 TC-028 | Not run (partial) |
-| FR-SPR-02 | Plan sprint content | MUST |  | Rahim plans and starts Sprint 1 | AGL-02.5 TC-015; AGL-02.5 TC-016; AGL-02.5 TC-027 | Not run (partial) |
-| FR-SPR-03 | Start a sprint, one active per project | MUST | One active sprint | Rahim plans and starts Sprint 1; Two managers start different sprints at once | AGL-10.4 TC-001; AGL-10.4 TC-002; AGL-10.4 TC-003; AGL-02.5 TC-001; AGL-02.5 TC-002; AGL-02.5 TC-026; AGL-02.5 TC-027 | Not run |
-| FR-SPR-04 | Close a sprint | MUST |  | Sprint closes with unfinished work | AGL-02.5 TC-014; AGL-10.4 TC-013; AGL-02.5 TC-027 | Not run |
-| FR-SPR-05 | Sprint history | MUST |  | Sprint closes with unfinished work | AGL-02.5 TC-025; AGL-02.5 TC-014 | Not run (partial) |
-| FR-SPR-06 | Scope change during a sprint | SHOULD |  |  | AGL-02.5 TC-013 | Not run (partial) |
+| FR-SPR-01 | Create a sprint | MUST |  |  | TC-AGL-02.5-27; TC-AGL-02.5-28 | Not run (partial) |
+| FR-SPR-02 | Plan sprint content | MUST |  | Rahim plans and starts Sprint 1 | TC-AGL-02.5-15; TC-AGL-02.5-16; TC-AGL-02.5-27 | Not run (partial) |
+| FR-SPR-03 | Start a sprint, one active per project | MUST | One active sprint | Rahim plans and starts Sprint 1; Two managers start different sprints at once | TC-AGL-10.4-01; TC-AGL-10.4-02; TC-AGL-10.4-03; TC-AGL-02.5-01; TC-AGL-02.5-02; TC-AGL-02.5-26; TC-AGL-02.5-27 | Not run |
+| FR-SPR-04 | Close a sprint | MUST |  | Sprint closes with unfinished work | TC-AGL-02.5-14; TC-AGL-10.4-13; TC-AGL-02.5-27 | Not run |
+| FR-SPR-05 | Sprint history | MUST |  | Sprint closes with unfinished work | TC-AGL-02.5-25; TC-AGL-02.5-14 | Not run (partial) |
+| FR-SPR-06 | Scope change during a sprint | SHOULD |  |  | TC-AGL-02.5-13 | Not run (partial) |
 | FR-BRD-01 | Board view | MUST |  |  |  | No test case yet |
-| FR-BRD-02 | Validated transitions | MUST | Workflow integrity | Karim moves ECOM-101; invalid jump blocked | AGL-02.5 TC-003; AGL-10.4 TC-009; AGL-10.4 TC-010; AGL-10.4 TC-011 | Not run (partial) |
+| FR-BRD-02 | Validated transitions | MUST | Workflow integrity | Karim moves ECOM-101; invalid jump blocked | TC-AGL-02.5-03; TC-AGL-10.4-09; TC-AGL-10.4-10; TC-AGL-10.4-11 | Not run (partial) |
 | FR-BRD-03 | Board filters | MUST |  |  |  | No test case yet |
-| FR-COL-01 | Comments | MUST |  |  | AGL-02.5 TC-004 | Not run (partial) |
+| FR-COL-01 | Comments | MUST |  |  | TC-AGL-02.5-04 | Not run (partial) |
 | FR-COL-02 | Edit own comment | MUST |  |  |  | No test case yet |
-| FR-ACT-01 | Record every key change | MUST | Traceability | Rahim opens the history of a changed priority | AGL-10.4 TC-004; AGL-10.4 TC-006; AGL-10.4 TC-009 | Not run |
-| FR-ACT-02 | Immutable history | MUST | Traceability |  | AGL-02.5 TC-017; AGL-02.5 TC-018 | Not run |
-| FR-RPT-01 | Burndown chart | MUST | Burndown accuracy |  | AGL-10.4 TC-009; AGL-10.4 TC-011; AGL-10.4 TC-012; AGL-10.4 TC-008; AGL-02.5 TC-012 | Not run |
-| FR-RPT-02 | Sprint report | MUST | Reporting |  | AGL-02.5 TC-013 | Not run (partial) |
+| FR-ACT-01 | Record every key change | MUST | Traceability | Rahim opens the history of a changed priority | TC-AGL-10.4-04; TC-AGL-10.4-06; TC-AGL-10.4-09 | Not run |
+| FR-ACT-02 | Immutable history | MUST | Traceability |  | TC-AGL-02.5-17; TC-AGL-02.5-18 | Not run |
+| FR-RPT-01 | Burndown chart | MUST | Burndown accuracy |  | TC-AGL-10.4-09; TC-AGL-10.4-11; TC-AGL-10.4-12; TC-AGL-10.4-08; TC-AGL-02.5-12 | Not run |
+| FR-RPT-02 | Sprint report | MUST | Reporting |  | TC-AGL-02.5-13 | Not run (partial) |
 | FR-RPT-03 | Management dashboard | MUST | Reporting |  |  | No test case yet |
 | FR-RPT-04 | Dashboard filters | MUST | Reporting |  |  | No test case yet |
 | FR-RPT-05 | Workload per member | MUST | Reporting |  |  | No test case yet |
