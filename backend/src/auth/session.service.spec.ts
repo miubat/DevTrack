@@ -70,4 +70,16 @@ describe('SessionService', () => {
     await makeService(query).logout('some-token');
     expect(query.mock.calls[0][1]).toEqual([hashToken('some-token')]);
   });
+
+  it('fails at startup when JWT_ACCESS_SECRET is missing', () => {
+    delete process.env.JWT_ACCESS_SECRET;
+    const jwt = {} as unknown as JwtService;
+    expect(
+      () =>
+        new SessionService(
+          { query: vi.fn() } as unknown as DatabaseService,
+          jwt,
+        ),
+    ).toThrow('JWT_ACCESS_SECRET is not set');
+  });
 });

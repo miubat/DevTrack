@@ -33,7 +33,16 @@ export class SessionService {
   constructor(
     private readonly db: DatabaseService,
     private readonly jwt: JwtService,
-  ) {}
+  ) {
+    if (!process.env.JWT_ACCESS_SECRET) {
+      throw new Error(
+        'JWT_ACCESS_SECRET is not set. Copy backend/.env.example to backend/.env and set it.',
+      );
+    }
+    // Fail at startup if a TTL value is wrong.
+    ttlToMs(process.env.JWT_ACCESS_TTL ?? '15m');
+    ttlToMs(process.env.JWT_REFRESH_TTL ?? '7d');
+  }
 
   start(user: SessionUser): Promise<SessionTokens> {
     return this.issue(user);
