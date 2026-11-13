@@ -75,7 +75,10 @@ function LoginPage() {
           type="email"
           autoComplete="username"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setFieldErrors((prev) => ({ ...prev, email: undefined })); // hide old error while typing
+          }}
           aria-invalid={Boolean(fieldErrors.email)}
           aria-describedby={fieldErrors.email ? 'email-error' : undefined}
         />
@@ -91,7 +94,10 @@ function LoginPage() {
           type="password"
           autoComplete="current-password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setFieldErrors((prev) => ({ ...prev, password: undefined })); // hide old error while typing
+          }}
           aria-invalid={Boolean(fieldErrors.password)}
           aria-describedby={fieldErrors.password ? 'password-error' : undefined}
         />
