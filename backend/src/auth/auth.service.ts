@@ -15,8 +15,12 @@ interface UserRow {
 @Injectable()
 export class AuthService {
   // Used when the email does not exist, so the response time looks the same.
+  // The options match the seed users' hashes, so both cases take the same time.
   private readonly dummyHash = argon2.hash('not-a-real-password', {
     type: argon2.argon2id,
+    memoryCost: 19456,
+    timeCost: 2,
+    parallelism: 1,
   });
 
   constructor(private readonly db: DatabaseService) {}
