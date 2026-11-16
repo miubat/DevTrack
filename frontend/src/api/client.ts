@@ -2,7 +2,8 @@
 // Use apiFetch for every protected API call. It:
 // 1. adds "Authorization: Bearer <access token>",
 // 2. on 401, refreshes the token once and retries,
-// 3. if it still fails, clears the token and sends the user to /login.
+// 3. if the session is over (401), clears the token and sends the user to /login.
+//    A server error during refresh (500, network) does not log the user out.
 
 import { refreshAccessToken } from './auth.ts';
 import { getAccessToken, setAccessToken } from './token.ts';
@@ -32,7 +33,11 @@ export async function apiFetch(
   }
 
   // Token missing or expired (15 min): try one refresh, then retry once.
-  if (await refreshAccessToken()) {
+  const refreshed = await refreshAccessToken();
+  if (refreshed === 'error') {
+    return res; // server problem, not a logout: the page can show an error
+  }
+  if (refreshed === 'ok') {
     const retry = await send(path, init);
     if (retry.status !== 401) {
       return retry;
