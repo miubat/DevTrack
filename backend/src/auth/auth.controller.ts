@@ -1,15 +1,18 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Post,
   Req,
   Res,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
+import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { SessionService, SessionTokens } from './session.service.js';
 
 const REFRESH_COOKIE = 'refresh_token';
@@ -58,6 +61,12 @@ export class AuthController {
     res.clearCookie(REFRESH_COOKIE, { path: '/auth' });
   }
 
+  // Test route for the guard. The profile task (GET /me) can replace it later.
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  me(@Req() req: Request & { user?: { id: string; role: string } }) {
+    return req.user;
+  }
   private setRefreshCookie(res: Response, tokens: SessionTokens) {
     res.cookie(REFRESH_COOKIE, tokens.refreshToken, {
       httpOnly: true,
