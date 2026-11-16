@@ -1,6 +1,7 @@
-# AGL-07.1: Lint and unit tests on every pull request (SRS NFR-OPS-01)
+# CI for every pull request (SRS NFR-OPS-01)
+# AGL-07.1: lint and unit tests. AGL-07.2: API tests against PostgreSQL.
 # A failing job blocks merge once it is marked "required" in branch protection (AGL-07.3).
-# Keep the job ids (backend, frontend) stable: branch protection uses them.
+# Keep the job ids (backend, api-tests, frontend) stable: branch protection uses them.
 
 name: CI
 
@@ -47,6 +48,66 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # AGL-07.2: API tests against a real PostgreSQL 16 (same image as db/docker-compose.yml)
+  api-tests:
+    name: api-tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: devtrack
+          POSTGRES_PASSWORD: devtrack
+          POSTGRES_DB: devtrack
+          TZ: UTC
+        ports:
+          - 5432:5432
+        # Wait until the database accepts connections
+        options: >-
+          --health-cmd "pg_isready -U devtrack -d devtrack"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            db/package-lock.json
+            backend/package-lock.json
+
+      # 1) Build the real schema and test data (owner user)
+      - name: Install db tools
+        working-directory: db
+        run: npm ci
+
+      - name: Migrate
+        working-directory: db
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: postgresql://devtrack:devtrack@localhost:5432/devtrack?schema=public
+
+      - name: Seed
+        working-directory: db
+        run: npm run db:seed
+        env:
+          DATABASE_URL: postgresql://devtrack:devtrack@localhost:5432/devtrack?schema=public
+
+      # 2) Run the API tests as the app user (no UPDATE/DELETE on activities)
+      - name: Install backend
+        working-directory: backend
+        run: npm ci
+
+      - name: API tests (e2e)
+        working-directory: backend
+        run: npm run test:e2e
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://devtrack_app:devtrack_app@localhost:5432/devtrack?schema=public
 
   frontend:
     name: frontend
