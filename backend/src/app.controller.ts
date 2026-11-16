@@ -1,3 +1,5 @@
+// QA check AGL-07.1, do not merge
+
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service.js';
 
