@@ -9,7 +9,7 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    Promise.resolve();
+    // Promise.resolve();
     return this.appService.getHello();
   }
 }
