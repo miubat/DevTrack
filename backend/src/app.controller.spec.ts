@@ -16,7 +16,8 @@ describe('AppController', () => {
 
   describe('root', () => {
     it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+      // AGL-07.3: broken on purpose to prove CI blocks the merge
+      expect(appController.getHello()).toBe('This will fail on purpose');
     });
   });
 });
