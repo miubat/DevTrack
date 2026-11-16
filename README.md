@@ -1,5 +1,7 @@
 # DevTrack
 
+[![CI](https://github.com/miubat/DevTrack/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/miubat/DevTrack/actions/workflows/ci.yml)
+
 Agile Project & Issue Management System. Requirements are in the SRS.
 
 | Folder                | What it is           | Runs on               |
