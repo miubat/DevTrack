@@ -66,6 +66,31 @@ describe('apiFetch', () => {
     expect(assign).toHaveBeenCalledWith('/login');
   });
 
+  it('a 500 from refresh keeps the session and does not redirect', async () => {
+    setAccessToken('old-token');
+    fetchMock
+      .mockResolvedValueOnce(reply(401)) // expired token
+      .mockResolvedValueOnce(reply(500)); // server error during refresh
+
+    const res = await apiFetch('/projects');
+
+    expect(res.status).toBe(401);
+    expect(getAccessToken()).toBe('old-token');
+    expect(assign).not.toHaveBeenCalled();
+  });
+
+  it('a network error during refresh does not redirect', async () => {
+    setAccessToken('old-token');
+    fetchMock
+      .mockResolvedValueOnce(reply(401))
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'));
+
+    await apiFetch('/projects');
+
+    expect(getAccessToken()).toBe('old-token');
+    expect(assign).not.toHaveBeenCalled();
+  });
+
   it('runs only one refresh when two calls get 401 at the same time', async () => {
     setAccessToken('old-token');
     fetchMock.mockImplementation((path: string, init: RequestInit) => {
