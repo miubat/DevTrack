@@ -1,0 +1,77 @@
+# AGL-07.1: Lint and unit tests on every pull request (SRS NFR-OPS-01)
+# A failing job blocks merge once it is marked "required" in branch protection (AGL-07.3).
+# Keep the job ids (backend, frontend) stable: branch protection uses them.
+
+name: CI
+
+on:
+  pull_request: # every pull request, any target branch
+  push:
+    branches: [master, main] # keeps the README badge up to date
+
+# Cancel an older run when new commits are pushed to the same PR
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      # Includes the TypeScript type check (tsc -b)
+      - name: Build
+        run: npm run build
