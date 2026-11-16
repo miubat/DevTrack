@@ -1,4 +1,7 @@
-// Login API call (FR-AUTH-01). Backend: POST /auth/login.
+// Login and refresh API calls (FR-AUTH-01, FR-AUTH-03).
+// Backend: POST /auth/login, POST /auth/refresh.
+
+import { setAccessToken } from './token.ts';
 
 export interface LoginUser {
   id: string;
@@ -50,5 +53,38 @@ export async function login(
   if (!res.ok) {
     throw new LoginError('server');
   }
-  return (await res.json()) as LoginResult;
+  const result = (await res.json()) as LoginResult;
+  setAccessToken(result.accessToken ?? null);
+  return result;
+}
+
+// Only one refresh at a time. The server rotates the refresh cookie, so two
+// parallel refresh calls would send the same old cookie and the second gets 401.
+let refreshing: Promise<boolean> | null = null;
+
+// Gets a new access token with the refresh cookie. Returns false if the session is over.
+export function refreshAccessToken(): Promise<boolean> {
+  refreshing ??= doRefresh().finally(() => {
+    refreshing = null;
+  });
+  return refreshing;
+}
+
+async function doRefresh(): Promise<boolean> {
+  try {
+    const res = await fetch('/auth/refresh', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      setAccessToken(null);
+      return false;
+    }
+    const body = (await res.json()) as { accessToken: string };
+    setAccessToken(body.accessToken);
+    return true;
+  } catch {
+    setAccessToken(null); // network down: treat as logged out
+    return false;
+  }
 }
