@@ -18,3 +18,62 @@ body {
   margin: 0 auto;
   padding: 32px 16px;
 }
+
+/* Login page (AGL-05.1) */
+.login-page {
+  max-width: 400px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.login-form label {
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+.login-form input {
+  padding: 8px 10px;
+  font: inherit;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+}
+
+.login-form input[aria-invalid='true'] {
+  border-color: #cf222e;
+}
+
+.login-form button {
+  margin-top: 20px;
+  padding: 10px;
+  font: inherit;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #1f883d;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.login-form button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.field-error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #cf222e;
+}
+
+.form-error {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  color: #82071e;
+  background-color: #ffebe9;
+  border: 1px solid #ff8182;
+  border-radius: 6px;
+}
