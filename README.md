@@ -81,13 +81,20 @@ The frontend has no tests yet, so it has no `npm test`.
 
 ## Branches
 
-Work on a branch named `feature/AGL-xx-short-name`, then open a pull request to `master`.
+Create a branch from `master`, then open a pull request to `master`. Name it by type:
+
+| Prefix     | Use for                                         | Example                          |
+| ---------- | ----------------------------------------------- | -------------------------------- |
+| `feature/` | App code (frontend, backend, database)          | `feature/AGL-05.1-login-form`    |
+| `docs/`    | Documents: test cases, test plan, RTM, diagrams | `docs/AGL-05.4-login-test-cases` |
+| `test/`    | Test automation: Playwright, API test suites    | `test/AGL-33.1-playwright-setup` |
+| `fix/`     | Bug fixes                                       | `fix/BUG-AGL-06.1-01`            |
 
 ## Troubleshooting
 
-| Problem                                       | Fix                                                                          |
-| --------------------------------------------- | ---------------------------------------------------------------------------- |
-| `node -v` is below 20                         | Install the current LTS from https://nodejs.org and reopen the terminal.     |
-| `EADDRINUSE` / port already in use            | Stop the other program using the port, or change the port: set `PORT` in `backend/.env` (for example `PORT=3001`) and set `VITE_API_URL` in `frontend/.env` to the same port (`http://localhost:3001`). Restart both. |
-| `npm install` fails                           | Delete the `node_modules` folder and run `npm install` again.                |
-| Changed `.env` but nothing changed            | Stop the dev server (Ctrl+C) and start it again.                             |
+| Problem                            | Fix                                                                                                                                                                                                                   |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `node -v` is below 20              | Install the current LTS from https://nodejs.org and reopen the terminal.                                                                                                                                              |
+| `EADDRINUSE` / port already in use | Stop the other program using the port, or change the port: set `PORT` in `backend/.env` (for example `PORT=3001`) and set `VITE_API_URL` in `frontend/.env` to the same port (`http://localhost:3001`). Restart both. |
+| `npm install` fails                | Delete the `node_modules` folder and run `npm install` again.                                                                                                                                                         |
+| Changed `.env` but nothing changed | Stop the dev server (Ctrl+C) and start it again.                                                                                                                                                                      |
