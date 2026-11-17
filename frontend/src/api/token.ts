@@ -4,10 +4,19 @@
 
 let accessToken: string | null = null;
 
+// Screens that must redraw when the token changes (AGL-05.3: menus)
+const listeners = new Set<() => void>();
+
 export function getAccessToken(): string | null {
   return accessToken;
 }
 
 export function setAccessToken(token: string | null): void {
   accessToken = token;
+  listeners.forEach((listener) => listener());
+}
+
+export function subscribeToken(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
 }
