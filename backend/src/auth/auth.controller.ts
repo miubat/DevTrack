@@ -10,6 +10,7 @@ import {
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
+import { LoginProtection } from './login-protection.js';
 import { SessionService, SessionTokens } from './session.service.js';
 
 const REFRESH_COOKIE = 'refresh_token';
@@ -22,6 +23,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @LoginProtection()
   @HttpCode(200)
   async login(
     @Body() dto: LoginDto,
