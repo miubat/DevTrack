@@ -108,6 +108,8 @@ jobs:
         env:
           NODE_ENV: test
           DATABASE_URL: postgresql://devtrack_app:devtrack_app@localhost:5432/devtrack?schema=public
+          # The app will not start without this. Test-only value, not a real secret.
+          JWT_ACCESS_SECRET: ci-test-only-secret-not-used-anywhere-else
 
   frontend:
     name: frontend
