@@ -1,5 +1,7 @@
 # DevTrack Backend
 
+[![CI](https://github.com/miubat/DevTrack/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/miubat/DevTrack/actions/workflows/ci.yml)
+
 NestJS API for DevTrack, the Agile Project & Issue Management System (Group 4).
 See the SRS for requirements and the API contract.
 
