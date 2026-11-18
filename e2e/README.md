@@ -1,6 +1,6 @@
 # e2e: Playwright tests
 
-End-to-end tests for DevTrack (AGL-33).
+End-to-end tests for DevTrack (AGL-33). They also run in CI on every pull request (job `e2e` in `.github/workflows/ci.yml`); the HTML report is attached to the run as `playwright-report`.
 
 ## Setup (once)
 
