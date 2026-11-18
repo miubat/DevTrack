@@ -1,3 +1,4 @@
+import { LoginRateLimiter } from './login-rate-limiter.js';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller.js';
@@ -7,6 +8,6 @@ import { SessionService } from './session.service.js';
 @Module({
   imports: [JwtModule.register({})],
   controllers: [AuthController],
-  providers: [AuthService, SessionService],
+  providers: [AuthService, SessionService, LoginRateLimiter],
 })
 export class AuthModule {}
