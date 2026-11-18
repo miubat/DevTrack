@@ -82,4 +82,14 @@ describe('SessionService', () => {
         ),
     ).toThrow('JWT_ACCESS_SECRET is not set');
   });
+
+  it('refresh only accepts tokens that are not revoked and not expired', async () => {
+    const query = vi.fn().mockResolvedValue([]);
+    await expect(makeService(query).refresh('expired-token')).rejects.toThrow(
+      UnauthorizedException,
+    );
+    const sql = query.mock.calls[0][0] as string;
+    expect(sql).toContain('revoked_at IS NULL');
+    expect(sql).toContain('expires_at > now()');
+  });
 });
