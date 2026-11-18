@@ -1,5 +1,7 @@
 # DevTrack Frontend
 
+[![CI](https://github.com/miubat/DevTrack/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/miubat/DevTrack/actions/workflows/ci.yml)
+
 React + Vite single-page app for DevTrack, the Agile Project & Issue Management System (Group 4).
 See the SRS for requirements.
 
