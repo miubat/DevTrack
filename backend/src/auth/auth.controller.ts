@@ -12,6 +12,7 @@ import {
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
+import { Public } from './public.decorator.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { LoginProtection } from './login-protection.js';
 import { SessionService, SessionTokens } from './session.service.js';
@@ -25,6 +26,7 @@ export class AuthController {
     private readonly sessions: SessionService,
   ) {}
 
+  @Public()
   @Post('login')
   @LoginProtection()
   @HttpCode(200)
@@ -38,6 +40,7 @@ export class AuthController {
     return { user, accessToken: tokens.accessToken };
   }
 
+  @Public()
   @Post('refresh')
   @HttpCode(200)
   async refresh(
@@ -53,6 +56,7 @@ export class AuthController {
     return { accessToken: tokens.accessToken };
   }
 
+  @Public()
   @Post('logout')
   @HttpCode(204)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
