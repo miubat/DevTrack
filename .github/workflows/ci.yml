@@ -1,7 +1,8 @@
 # CI for every pull request (SRS NFR-OPS-01)
 # AGL-07.1: lint and unit tests. AGL-07.2: API tests against PostgreSQL.
+# AGL-33.1: Playwright end-to-end tests.
 # A failing job blocks merge once it is marked "required" in branch protection (AGL-07.3).
-# Keep the job ids (backend, api-tests, frontend) stable: branch protection uses them.
+# Keep the job ids (backend, api-tests, frontend, e2e) stable: branch protection uses them.
 
 name: CI
 
@@ -138,3 +139,51 @@ jobs:
       # Includes the TypeScript type check (tsc -b)
       - name: Build
         run: npm run build
+
+  # AGL-33.1: Playwright tests. Playwright starts the frontend dev server itself
+  # (TARGET=local, see e2e/playwright.config.ts).
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            e2e/package-lock.json
+
+      - name: Install frontend
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright tests
+        run: npm test
+        env:
+          TARGET: local
+
+      # Keep the HTML report (screenshots and traces of failures) for 14 days
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 14
