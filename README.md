@@ -81,6 +81,29 @@ npm run build
 
 The frontend has no tests yet, so it has no `npm test`.
 
+## API tests
+
+The API tests (`backend/test/*.e2e-spec.ts`) start the real backend and call it with [Supertest](https://github.com/ladjs/supertest). They use a separate database, `devtrack_test`, so your dev data is safe. CI runs them in the `api-tests` job.
+
+First time only:
+
+```bash
+cd db
+npm run db:test:setup
+cd ../backend
+cp .env.test.example .env.test
+```
+
+Run the tests (in `backend/`):
+
+```bash
+npm run test:e2e
+```
+
+To get fresh test data again, run `npm run db:test:setup` in `db/` again.
+
+The tests refuse to run if the database name does not end with `_test`. Helpers for new tests are in `backend/test/utils/`: `createTestApp()` starts the app, `loginAs(app, SEED_USERS.admin)` logs in and returns the access token and refresh cookie.
+
 ## Branches
 
 Create a branch from `master`, then open a pull request to `master`. Name it by type:

@@ -13,6 +13,7 @@
     "db:seed": "prisma db seed",
     "db:setup": "npm run db:up && npm run db:migrate && npm run db:seed",
     "db:reset": "docker compose down -v && npm run db:setup",
+    "db:test:setup": "node scripts/test-db-setup.mjs",
     "db:studio": "prisma studio"
   },
   "prisma": {
