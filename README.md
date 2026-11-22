@@ -1,5 +1,7 @@
 # DevTrack
 
+[![CI](https://github.com/miubat/DevTrack/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/miubat/DevTrack/actions/workflows/ci.yml)
+
 Agile Project & Issue Management System. Requirements are in the SRS.
 
 | Folder                | What it is           | Runs on               |
@@ -79,15 +81,45 @@ npm run build
 
 The frontend has no tests yet, so it has no `npm test`.
 
+## API tests
+
+The API tests (`backend/test/*.e2e-spec.ts`) start the real backend and call it with [Supertest](https://github.com/ladjs/supertest). They use a separate database, `devtrack_test`, so your dev data is safe. CI runs them in the `api-tests` job.
+
+First time only:
+
+```bash
+cd db
+npm run db:test:setup
+cd ../backend
+cp .env.test.example .env.test
+```
+
+Run the tests (in `backend/`):
+
+```bash
+npm run test:e2e
+```
+
+To get fresh test data again, run `npm run db:test:setup` in `db/` again.
+
+The tests refuse to run if the database name does not end with `_test`. Helpers for new tests are in `backend/test/utils/`: `createTestApp()` starts the app, `loginAs(app, SEED_USERS.admin)` logs in and returns the access token and refresh cookie.
+
 ## Branches
 
-Work on a branch named `feature/AGL-xx-short-name`, then open a pull request to `master`.
+Create a branch from `master`, then open a pull request to `master`. Name it by type:
+
+| Prefix     | Use for                                         | Example                          |
+| ---------- | ----------------------------------------------- | -------------------------------- |
+| `feature/` | App code (frontend, backend, database)          | `feature/AGL-05.1-login-form`    |
+| `docs/`    | Documents: test cases, test plan, RTM, diagrams | `docs/AGL-05.4-login-test-cases` |
+| `test/`    | Test automation: Playwright, API test suites    | `test/AGL-33.1-playwright-setup` |
+| `fix/`     | Bug fixes                                       | `fix/BUG-AGL-06.1-01`            |
 
 ## Troubleshooting
 
-| Problem                                       | Fix                                                                          |
-| --------------------------------------------- | ---------------------------------------------------------------------------- |
-| `node -v` is below 20                         | Install the current LTS from https://nodejs.org and reopen the terminal.     |
-| `EADDRINUSE` / port already in use            | Stop the other program using the port, or change the port: set `PORT` in `backend/.env` (for example `PORT=3001`) and set `VITE_API_URL` in `frontend/.env` to the same port (`http://localhost:3001`). Restart both. |
-| `npm install` fails                           | Delete the `node_modules` folder and run `npm install` again.                |
-| Changed `.env` but nothing changed            | Stop the dev server (Ctrl+C) and start it again.                             |
+| Problem                            | Fix                                                                                                                                                                                                                   |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `node -v` is below 20              | Install the current LTS from https://nodejs.org and reopen the terminal.                                                                                                                                              |
+| `EADDRINUSE` / port already in use | Stop the other program using the port, or change the port: set `PORT` in `backend/.env` (for example `PORT=3001`) and set `VITE_API_URL` in `frontend/.env` to the same port (`http://localhost:3001`). Restart both. |
+| `npm install` fails                | Delete the `node_modules` folder and run `npm install` again.                                                                                                                                                         |
+| Changed `.env` but nothing changed | Stop the dev server (Ctrl+C) and start it again.                                                                                                                                                                      |

@@ -12,7 +12,7 @@ AGL-
 
 ## Checklist
 
-- [ ] Branch name is `feature/AGL-xx-short-name`
+- [ ] Branch name follows the README (`feature/`, `docs/`, `test/` or `fix/`)
 - [ ] `npm run lint` passes
 - [ ] `npm run format:check` passes
 - [ ] Tests pass (`npm test`)
