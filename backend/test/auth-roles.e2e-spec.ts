@@ -9,16 +9,19 @@ import { createTestApp } from './utils/test-app.js';
 type UserKey = keyof typeof SEED_USERS;
 
 // Who may open which route: 200 = allowed, 403 = wrong role.
-const MATRIX: Array<[route: string, user: UserKey, status: 200 | 403]> = [
-  ['/access-check/any', 'admin', 200],
-  ['/access-check/any', 'manager', 200],
-  ['/access-check/any', 'member', 200],
-  ['/access-check/manager', 'admin', 200],
-  ['/access-check/manager', 'manager', 200],
-  ['/access-check/manager', 'member', 403],
-  ['/access-check/admin', 'admin', 200],
-  ['/access-check/admin', 'manager', 403],
-  ['/access-check/admin', 'member', 403],
+// The first column is the AGL-06.6 test case number.
+const MATRIX: Array<
+  [tc: string, route: string, user: UserKey, status: 200 | 403]
+> = [
+  ['23', '/access-check/any', 'admin', 200],
+  ['23', '/access-check/any', 'manager', 200],
+  ['23', '/access-check/any', 'member', 200],
+  ['24', '/access-check/manager', 'admin', 200],
+  ['24', '/access-check/manager', 'manager', 200],
+  ['24', '/access-check/manager', 'member', 403],
+  ['25', '/access-check/admin', 'admin', 200],
+  ['25', '/access-check/admin', 'manager', 403],
+  ['25', '/access-check/admin', 'member', 403],
 ];
 
 describe('Auth: roles (e2e)', () => {
@@ -37,14 +40,17 @@ describe('Auth: roles (e2e)', () => {
     await app.close();
   });
 
-  it.each(MATRIX)('GET %s as %s returns %i', async (route, user, status) => {
-    const res = await request(app.getHttpServer())
-      .get(route)
-      .set('Authorization', `Bearer ${tokens[user]}`)
-      .expect(status);
+  it.each(MATRIX)(
+    'TC-AGL-06.6-%s: GET %s as %s returns %i',
+    async (_tc, route, user, status) => {
+      const res = await request(app.getHttpServer())
+        .get(route)
+        .set('Authorization', `Bearer ${tokens[user]}`)
+        .expect(status);
 
-    if (status === 403) {
-      expect(res.body.code).toBe('FORBIDDEN_ROLE');
-    }
-  });
+      if (status === 403) {
+        expect(res.body.code).toBe('FORBIDDEN_ROLE');
+      }
+    },
+  );
 });

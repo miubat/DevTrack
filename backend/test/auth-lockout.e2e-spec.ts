@@ -36,7 +36,7 @@ describe('Auth: lockout after 5 failed logins (e2e)', () => {
     await app.close();
   });
 
-  it('after 5 wrong passwords, even the right password gets 429 with Retry-After', async () => {
+  it('TC-AGL-06.6-26: after 5 wrong passwords, even the right password gets 429 with Retry-After', async () => {
     for (let i = 0; i < 5; i++) {
       await login(app, LOCKED_USER, WRONG).expect(401);
     }
@@ -49,7 +49,7 @@ describe('Auth: lockout after 5 failed logins (e2e)', () => {
     expect(retryAfter).toBeLessThanOrEqual(15 * 60);
   });
 
-  it('the lock is per account: another user can still log in', () => {
+  it('TC-AGL-06.6-27: the lock is per account: another user can still log in', () => {
     return login(app, OTHER_USER, SEED_PASSWORD).expect(200);
   });
 });
@@ -67,7 +67,7 @@ describe('Auth: a successful login resets the failed count (e2e)', () => {
     await app.close();
   });
 
-  it('4 wrong, 1 right, 4 wrong: the account is not locked', async () => {
+  it('TC-AGL-06.6-28: 4 wrong, 1 right, 4 wrong: the account is not locked', async () => {
     for (let i = 0; i < 4; i++) {
       await login(app, USER, WRONG).expect(401);
     }

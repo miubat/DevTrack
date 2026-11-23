@@ -18,7 +18,7 @@ describe('Auth: login rate limit (e2e)', () => {
     await app.close();
   });
 
-  it('the 11th login request in a minute gets 429 with Retry-After, even with the right password', async () => {
+  it('TC-AGL-06.6-29: the 11th login request in a minute gets 429 with Retry-After, even with the right password', async () => {
     // 10 quick requests. A bad email format is rejected with 400,
     // but it still counts, and it does not add failed logins to the database.
     for (let i = 0; i < 10; i++) {

@@ -31,7 +31,7 @@ describe('Auth: refresh and logout (e2e)', () => {
     await app.close();
   });
 
-  it('refresh with a valid cookie returns 200, a new access token and a new cookie', async () => {
+  it('TC-AGL-06.6-09: refresh with a valid cookie returns 200, a new access token and a new cookie', async () => {
     const { refreshCookie } = await loginAs(app, SEED_USERS.admin);
 
     const res = await refresh(refreshCookie).expect(200);
@@ -42,14 +42,14 @@ describe('Auth: refresh and logout (e2e)', () => {
     expect(newCookie).not.toBe(refreshCookie);
   });
 
-  it('an old refresh token cannot be used again after a refresh (rotation)', async () => {
+  it('TC-AGL-06.6-10: an old refresh token cannot be used again after a refresh (rotation)', async () => {
     const { refreshCookie } = await loginAs(app, SEED_USERS.manager);
     await refresh(refreshCookie).expect(200);
 
     await refresh(refreshCookie).expect(401);
   });
 
-  it('the access token from a refresh works on a protected route', async () => {
+  it('TC-AGL-06.6-11: the access token from a refresh works on a protected route', async () => {
     const { refreshCookie } = await loginAs(app, SEED_USERS.member);
     const res = await refresh(refreshCookie).expect(200);
 
@@ -61,15 +61,15 @@ describe('Auth: refresh and logout (e2e)', () => {
     expect(me.body).toMatchObject({ role: 'TEAM_MEMBER' });
   });
 
-  it('refresh without a cookie returns 401', () => {
+  it('TC-AGL-06.6-12: refresh without a cookie returns 401', () => {
     return refresh().expect(401);
   });
 
-  it('refresh with a made-up cookie returns 401', () => {
+  it('TC-AGL-06.6-13: refresh with a made-up cookie returns 401', () => {
     return refresh('refresh_token=not-a-real-token').expect(401);
   });
 
-  it('logout returns 204, clears the cookie, and the token no longer refreshes', async () => {
+  it('TC-AGL-06.6-14: logout returns 204, clears the cookie, and the token no longer refreshes', async () => {
     const { refreshCookie } = await loginAs(app, SEED_USERS.admin);
 
     const res = await request(app.getHttpServer())
@@ -87,11 +87,11 @@ describe('Auth: refresh and logout (e2e)', () => {
     await refresh(refreshCookie).expect(401);
   });
 
-  it('logout without a cookie still returns 204', () => {
+  it('TC-AGL-06.6-15: logout without a cookie still returns 204', () => {
     return request(app.getHttpServer()).post('/auth/logout').expect(204);
   });
 
-  it('a user who is turned off cannot refresh (401)', async () => {
+  it('TC-AGL-06.6-16: a user who is turned off cannot refresh (401)', async () => {
     const { refreshCookie } = await loginAs(app, DEACTIVATED_USER);
     await setUserActive(app, DEACTIVATED_USER, false);
 
