@@ -1,15 +1,15 @@
 # Requirements Traceability Matrix (RTM) · DevTrack · AGL-10.3
 
-Maps every functional requirement in SRS §3 (36 FRs) to the BRD success criteria (SRS §8.1), the demo scenarios (SRS §8.2) and the test cases that cover it. Test cases come from AGL-02.5 (data-integrity cases), AGL-10.4 (k6 scenarios), TC-AGL-02.3-01 and TC-AGL-02.3-02 (sample cases in AGL-10.2.test-case-template.md) and AGL-06.6 (auth API cases in auth-api-test-cases.md).
+Maps every functional requirement in SRS §3 (36 FRs) to the BRD success criteria (SRS §8.1), the demo scenarios (SRS §8.2) and the test cases that cover it. Test cases come from AGL-02.5 (data-integrity cases), AGL-10.4 (k6 scenarios) and TC-AGL-02.3-01 and TC-AGL-02.3-02 (sample cases in AGL-10.2.test-case-template.md).
 
-Test Status: **Passed (build ...)** = every test case of the row was run on that build and passed. **Not run** = test cases exist and cover the FR. **Not run (partial)** = test cases cover only some of the FR's scenarios. **No test case yet** = no test case covers the FR so far. **(passed)** after a test case ID means that case was run and passed (database level, build b39cc64); the other cases of the row are still not run. **(weak fit)** after a test case ID means the case mainly covers another requirement and only touches this FR.
+Test Status: **Not run** = test cases exist and cover the FR. **Not run (partial)** = test cases cover only some of the FR's scenarios. **No test case yet** = no test case covers the FR so far. **(passed)** after a test case ID means that case was run and passed (database level, build b39cc64); the other cases of the row are still not run. **(weak fit)** after a test case ID means the case mainly covers another requirement and only touches this FR.
 
 | FR ID | Requirement | Priority | BRD Success Criterion (§8.1) | BRD Demo Scenario (§8.2) | Test Case ID | Test Status |
 |---|---|---|---|---|---|---|
-| FR-AUTH-01 | Login and logout | MUST |  |  | TC-AGL-06.6-01 to TC-AGL-06.6-16 | Passed (build c1b0396) |
+| FR-AUTH-01 | Login and logout | MUST |  |  |  | No test case yet |
 | FR-AUTH-02 | User administration | MUST |  |  |  | No test case yet |
 | FR-AUTH-03 | Profile and password | MUST |  |  |  | No test case yet |
-| FR-AUTH-04 | Failed-login lockout | SHOULD |  |  | TC-AGL-06.6-26 to TC-AGL-06.6-28 | Passed (build c1b0396) |
+| FR-AUTH-04 | Failed-login lockout | SHOULD |  |  |  | No test case yet |
 | FR-PRJ-01 | Create a project | MUST |  | Rahim creates project ECOM and adds 4 members | TC-AGL-02.5-20; TC-AGL-02.5-21; TC-AGL-02.5-23 | Not run (partial) |
 | FR-PRJ-02 | Edit and archive a project | MUST |  |  | TC-AGL-02.5-22; TC-AGL-02.5-24 | Not run |
 | FR-PRJ-03 | Manage members | MUST |  | Rahim creates project ECOM and adds 4 members |  | No test case yet |
@@ -45,4 +45,4 @@ Test Status: **Passed (build ...)** = every test case of the row was run on that
 
 Sprint delete cases TC-AGL-02.5-39, 40, 41 cover SRS §4.2 only; no FR covers sprint deletion.
 
-Summary: 36 of 36 FRs have a row. 12 are covered, 11 are partly covered and 13 have no test case yet. The Performance and Delivery criteria in SRS §8.1 map only to NFRs (NFR-PERF, NFR-OPS), so they do not appear in this FR matrix.
+Summary: 36 of 36 FRs have a row. 10 are covered, 11 are partly covered and 15 have no test case yet. The Performance and Delivery criteria in SRS §8.1 map only to NFRs (NFR-PERF, NFR-OPS), so they do not appear in this FR matrix.
