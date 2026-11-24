@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
+import { DatabaseService } from '../database/database.service.js';
 import { IS_PUBLIC } from './public.decorator.js';
 
 export interface AuthUser {
@@ -20,6 +21,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwt: JwtService,
     private readonly reflector: Reflector,
+    private readonly db: DatabaseService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -38,18 +40,31 @@ export class JwtAuthGuard implements CanActivate {
     if (type !== 'Bearer' || !token) {
       throw this.unauthenticated('Not signed in');
     }
+
+    let payload: { sub: string; role: string };
     try {
-      const payload = await this.jwt.verifyAsync<{ sub: string; role: string }>(
+      payload = await this.jwt.verifyAsync<{ sub: string; role: string }>(
         token,
         {
           secret: process.env.JWT_ACCESS_SECRET,
         },
       );
-      req.user = { id: payload.sub, role: payload.role };
-      return true;
     } catch {
       throw this.unauthenticated('Invalid or expired token');
     }
+
+    // BUG-AGL-06.3-01 (NFR-SEC-02): deactivation must cut access at once, so a valid
+    // token is not enough. The user must still exist and be active.
+    const rows = await this.db.query<{ is_active: boolean }>(
+      `SELECT is_active FROM users WHERE id = $1`,
+      [payload.sub],
+    );
+    if (!rows[0]?.is_active) {
+      throw this.unauthenticated('Invalid or expired token');
+    }
+
+    req.user = { id: payload.sub, role: payload.role };
+    return true;
   }
 
   private unauthenticated(message: string): UnauthorizedException {
