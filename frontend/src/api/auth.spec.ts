@@ -1,0 +1,97 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { login, LoginError } from './auth.ts';
+import { setAccessToken } from './token.ts';
+
+const fetchMock = vi.fn();
+
+function reply(
+  status: number,
+  body: unknown = {},
+  headers: Record<string, string> = {},
+): Response {
+  return new Response(JSON.stringify(body), { status, headers });
+}
+
+// Runs login and returns the LoginError it throws.
+async function loginError(): Promise<LoginError> {
+  const error = await login('karim@devtrack.local', 'x').catch((e) => e);
+  expect(error).toBeInstanceOf(LoginError);
+  return error as LoginError;
+}
+
+beforeEach(() => {
+  setAccessToken(null);
+  fetchMock.mockReset();
+  vi.stubGlobal('fetch', fetchMock);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe('login errors', () => {
+  it('401 shows the generic invalid message', async () => {
+    fetchMock.mockResolvedValueOnce(reply(401));
+
+    const error = await loginError();
+
+    expect(error.kind).toBe('invalid');
+    expect(error.message).toBe('Invalid email or password.');
+  });
+
+  // BUG-AGL-05.1-04
+  it('429 RATE_LIMITED tells the user to wait, using Retry-After', async () => {
+    fetchMock.mockResolvedValueOnce(
+      reply(429, { code: 'RATE_LIMITED' }, { 'Retry-After': '45' }),
+    );
+
+    const error = await loginError();
+
+    expect(error.kind).toBe('rate-limited');
+    expect(error.message).toBe(
+      'Too many login attempts. Please wait 1 minute and try again.',
+    );
+  });
+
+  // BUG-AGL-05.1-03
+  it('429 TEMPORARILY_LOCKED tells the user how many minutes to wait', async () => {
+    fetchMock.mockResolvedValueOnce(
+      reply(429, { code: 'TEMPORARILY_LOCKED' }, { 'Retry-After': '894' }),
+    );
+
+    const error = await loginError();
+
+    expect(error.kind).toBe('locked');
+    expect(error.message).toBe(
+      'Too many failed logins. Please wait 15 minutes and try again.',
+    );
+  });
+
+  it('429 without Retry-After uses the default wait', async () => {
+    fetchMock.mockResolvedValueOnce(reply(429, { code: 'TEMPORARILY_LOCKED' }));
+
+    const error = await loginError();
+
+    expect(error.message).toBe(
+      'Too many failed logins. Please wait 15 minutes and try again.',
+    );
+  });
+
+  it('429 is never shown as "Something went wrong"', async () => {
+    fetchMock.mockResolvedValueOnce(new Response('not json', { status: 429 }));
+
+    const error = await loginError();
+
+    expect(error.kind).toBe('rate-limited');
+    expect(error.message).not.toContain('Something went wrong');
+  });
+
+  it('500 still shows the general server message', async () => {
+    fetchMock.mockResolvedValueOnce(reply(500));
+
+    const error = await loginError();
+
+    expect(error.kind).toBe('server');
+    expect(error.message).toBe('Something went wrong. Please try again.');
+  });
+});
