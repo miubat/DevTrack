@@ -62,7 +62,14 @@ describe('AuthService.login', () => {
     const { service, sqls } = makeService({ user: activeUser });
     await expect(
       service.login('admin@devtrack.local', 'wrong'),
-    ).rejects.toThrow(new UnauthorizedException('Invalid email or password'));
+    ).rejects.toThrow(
+      new UnauthorizedException({
+        statusCode: 401,
+        code: 'INVALID_CREDENTIALS',
+        message: 'Invalid email or password',
+        error: 'Unauthorized',
+      }),
+    );
     expect(sqls.some((s) => s.includes('INSERT INTO failed_logins'))).toBe(
       true,
     );
@@ -72,7 +79,14 @@ describe('AuthService.login', () => {
     const { service, sqls } = makeService({});
     await expect(
       service.login('nobody@devtrack.local', 'Passw0rd1'),
-    ).rejects.toThrow(new UnauthorizedException('Invalid email or password'));
+    ).rejects.toThrow(
+      new UnauthorizedException({
+        statusCode: 401,
+        code: 'INVALID_CREDENTIALS',
+        message: 'Invalid email or password',
+        error: 'Unauthorized',
+      }),
+    );
     expect(sqls.some((s) => s.includes('INSERT INTO failed_logins'))).toBe(
       true,
     );
@@ -84,7 +98,14 @@ describe('AuthService.login', () => {
     });
     await expect(
       service.login('admin@devtrack.local', 'Passw0rd1'),
-    ).rejects.toThrow(new UnauthorizedException('Invalid email or password'));
+    ).rejects.toThrow(
+      new UnauthorizedException({
+        statusCode: 401,
+        code: 'INVALID_CREDENTIALS',
+        message: 'Invalid email or password',
+        error: 'Unauthorized',
+      }),
+    );
   });
 
   it('still allows the 5th try when there are only 4 failures', async () => {
