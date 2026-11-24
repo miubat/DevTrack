@@ -67,9 +67,11 @@ The Actual Result and Test Result columns hold the latest run. Before a new run,
 | Run | Date | Build | Pass | Fail | Not run | Bugs | By |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Nov 22, 2026 | master c1b0396, local | 19 (01–13, 18–23) | 3 (16, 17, 24) | 3 (14, 15 blocked: no logout control; 25 out of sprint scope) | BUG-AGL-05.3-01, BUG-AGL-05.1-02, BUG-AGL-05.1-03 | QA 2 · Mashrur Safir Shabab |
-| 2 | Nov 22, 2026 | master c1b0396, local, Brave | 3 (18 step 6, 26, 28) | 1 (27) | 29 (skipped by QA 2), 30 (staging not set up), 15 step 5 (blocked) | BUG-AGL-05.1-04 | QA 2 · Mashrur Safir Shabab |
+| 2 | Nov 22, 2026 | master c1b0396, local, Brave | 2 (26, 28); case 18 step 6 also passed (case 18 is counted in Run 1) | 1 (27) | 29 (skipped by QA 2), 30 (staging not set up), 15 step 5 (blocked) | BUG-AGL-05.1-04 | QA 2 · Mashrur Safir Shabab |
 
 Run 2 ran only the cases added after Run 1; the other cases keep their Run 1 results.
+
+**Current total (latest result per case): 21 pass, 4 fail, 5 not run, 30 cases.**
 
 ## Coverage
 
