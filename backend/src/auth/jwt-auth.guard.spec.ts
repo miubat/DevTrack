@@ -2,11 +2,14 @@ import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { beforeAll, describe, expect, it } from 'vitest';
+import type { DatabaseService } from '../database/database.service.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { Public } from './public.decorator.js';
 
 const jwt = new JwtService({});
-const guard = new JwtAuthGuard(jwt, new Reflector());
+let rows: { is_active: boolean }[] = [{ is_active: true }];
+const db = { query: () => Promise.resolve(rows) } as unknown as DatabaseService;
+const guard = new JwtAuthGuard(jwt, new Reflector(), db);
 
 function ctx(handler: () => void, authorization?: string) {
   const req: { headers: Record<string, string | undefined>; user?: unknown } = {
@@ -60,6 +63,40 @@ describe('JwtAuthGuard', () => {
     await expect(
       guard.canActivate(ctx(() => undefined, `Bearer ${bad}`).context),
     ).rejects.toThrow(UnauthorizedException);
+  });
+
+  it('rejects a valid token when the user is deactivated (BUG-AGL-06.3-01)', async () => {
+    const token = await jwt.signAsync(
+      { sub: '1', role: 'ADMIN' },
+      { secret: 'test-secret', expiresIn: 60 },
+    );
+    rows = [{ is_active: false }];
+    try {
+      const error = await guard
+        .canActivate(ctx(() => undefined, `Bearer ${token}`).context)
+        .catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(UnauthorizedException);
+      expect((error as UnauthorizedException).getResponse()).toMatchObject({
+        code: 'UNAUTHENTICATED',
+      });
+    } finally {
+      rows = [{ is_active: true }];
+    }
+  });
+
+  it('rejects a valid token when the user no longer exists', async () => {
+    const token = await jwt.signAsync(
+      { sub: '999', role: 'ADMIN' },
+      { secret: 'test-secret', expiresIn: 60 },
+    );
+    rows = [];
+    try {
+      await expect(
+        guard.canActivate(ctx(() => undefined, `Bearer ${token}`).context),
+      ).rejects.toThrow(UnauthorizedException);
+    } finally {
+      rows = [{ is_active: true }];
+    }
   });
 
   it('lets a @Public route through without a token', async () => {
