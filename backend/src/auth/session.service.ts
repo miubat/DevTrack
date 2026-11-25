@@ -57,7 +57,12 @@ export class SessionService {
       [hashToken(oldToken)],
     );
     if (revoked.length === 0) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException({
+        statusCode: 401,
+        code: 'UNAUTHENTICATED',
+        message: 'Invalid refresh token',
+        error: 'Unauthorized',
+      });
     }
 
     const users = await this.db.query<{
@@ -69,7 +74,12 @@ export class SessionService {
     ]);
     const user = users[0];
     if (!user || !user.is_active) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException({
+        statusCode: 401,
+        code: 'UNAUTHENTICATED',
+        message: 'Invalid refresh token',
+        error: 'Unauthorized',
+      });
     }
 
     return this.issue(user, revoked[0].id);
