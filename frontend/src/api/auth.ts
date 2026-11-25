@@ -40,7 +40,8 @@ function loginErrorMessage(kind: LoginErrorKind, waitSeconds?: number): string {
     case 'rate-limited':
       return `Too many login attempts. Please wait ${waitText(waitSeconds ?? 60)} and try again.`;
     case 'locked':
-      return `Too many failed logins. Please wait ${waitText(waitSeconds ?? 15 * 60)} and try again.`;
+      // No exact time here: it would tell an attacker when to start guessing again.
+      return 'Too many failed logins. Please try again later.';
     default:
       return 'Something went wrong. Please try again.';
   }

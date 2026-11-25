@@ -53,8 +53,8 @@ describe('login errors', () => {
     );
   });
 
-  // BUG-AGL-05.1-03
-  it('429 TEMPORARILY_LOCKED tells the user how many minutes to wait', async () => {
+  // BUG-AGL-05.1-03: a general message, never the exact time the lock ends.
+  it('429 TEMPORARILY_LOCKED asks the user to try again later, without a time', async () => {
     fetchMock.mockResolvedValueOnce(
       reply(429, { code: 'TEMPORARILY_LOCKED' }, { 'Retry-After': '894' }),
     );
@@ -63,17 +63,18 @@ describe('login errors', () => {
 
     expect(error.kind).toBe('locked');
     expect(error.message).toBe(
-      'Too many failed logins. Please wait 15 minutes and try again.',
+      'Too many failed logins. Please try again later.',
     );
+    expect(error.message).not.toMatch(/\d/); // no minutes or seconds
   });
 
-  it('429 without Retry-After uses the default wait', async () => {
-    fetchMock.mockResolvedValueOnce(reply(429, { code: 'TEMPORARILY_LOCKED' }));
+  it('429 RATE_LIMITED without Retry-After uses the default wait', async () => {
+    fetchMock.mockResolvedValueOnce(reply(429, { code: 'RATE_LIMITED' }));
 
     const error = await loginError();
 
     expect(error.message).toBe(
-      'Too many failed logins. Please wait 15 minutes and try again.',
+      'Too many login attempts. Please wait 1 minute and try again.',
     );
   });
 
