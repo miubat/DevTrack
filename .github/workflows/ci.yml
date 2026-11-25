@@ -142,9 +142,26 @@ jobs:
 
   # AGL-33.1: Playwright tests. Playwright starts the frontend dev server itself
   # (TARGET=local, see e2e/playwright.config.ts).
+  # AGL-33.3: this job also starts PostgreSQL and the backend, so the login smoke
+  # test signs in for real on every pull request.
   e2e:
     name: e2e
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: devtrack
+          POSTGRES_PASSWORD: devtrack
+          POSTGRES_DB: devtrack
+          TZ: UTC
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U devtrack -d devtrack"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     defaults:
       run:
         working-directory: e2e
@@ -156,9 +173,62 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: |
+            db/package-lock.json
+            backend/package-lock.json
             frontend/package-lock.json
             e2e/package-lock.json
 
+      # 1) Real schema and test data (owner user), same as the api-tests job
+      - name: Install db tools
+        working-directory: db
+        run: npm ci
+
+      - name: Migrate
+        working-directory: db
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: postgresql://devtrack:devtrack@localhost:5432/devtrack?schema=public
+
+      - name: Seed
+        working-directory: db
+        run: npm run db:seed
+        env:
+          DATABASE_URL: postgresql://devtrack:devtrack@localhost:5432/devtrack?schema=public
+
+      # 2) Start the backend as the app user and wait until it answers
+      - name: Install backend
+        working-directory: backend
+        run: npm ci
+
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
+
+      - name: Start backend
+        working-directory: backend
+        run: |
+          nohup node dist/main > "$GITHUB_WORKSPACE/backend.log" 2>&1 &
+        env:
+          NODE_ENV: test
+          PORT: 3000
+          DATABASE_URL: postgresql://devtrack_app:devtrack_app@localhost:5432/devtrack?schema=public
+          # Test-only value, not a real secret.
+          JWT_ACCESS_SECRET: ci-test-only-secret-not-used-anywhere-else
+
+      - name: Wait for backend
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/ > /dev/null; then
+              echo "backend is up"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "backend did not start"
+          cat "$GITHUB_WORKSPACE/backend.log"
+          exit 1
+
+      # 3) Playwright
       - name: Install frontend
         working-directory: frontend
         run: npm ci
@@ -175,10 +245,16 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
+      # E2E_BACKEND=true: the tests that sign in run here too (see login-navigation.spec.ts)
       - name: Playwright tests
         run: npm test
         env:
           TARGET: local
+          E2E_BACKEND: 'true'
+
+      - name: Backend log (on failure)
+        if: failure()
+        run: cat "$GITHUB_WORKSPACE/backend.log"
 
       # Keep the HTML report (screenshots and traces of failures) for 14 days
       - uses: actions/upload-artifact@v4
