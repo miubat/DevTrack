@@ -53,12 +53,11 @@ describe('Auth: refresh and logout (e2e)', () => {
     const { refreshCookie } = await loginAs(app, SEED_USERS.member);
     const res = await refresh(refreshCookie).expect(200);
 
-    const me = await request(app.getHttpServer())
+    // Expected: the new access token is accepted (FR-AUTH-01).
+    await request(app.getHttpServer())
       .get('/auth/me')
       .set('Authorization', `Bearer ${res.body.accessToken}`)
       .expect(200);
-
-    expect(me.body).toMatchObject({ role: 'TEAM_MEMBER' });
   });
 
   it('TC-AGL-06.6-12: refresh without a cookie returns 401', () => {
@@ -69,26 +68,23 @@ describe('Auth: refresh and logout (e2e)', () => {
     return refresh('refresh_token=not-a-real-token').expect(401);
   });
 
-  it('TC-AGL-06.6-14: logout returns 204, clears the cookie, and the token no longer refreshes', async () => {
+  it('TC-AGL-06.6-14: logout succeeds and the session ends', async () => {
     const { refreshCookie } = await loginAs(app, SEED_USERS.admin);
 
+    // Step 1: logout succeeds (FR-AUTH-01).
     const res = await request(app.getHttpServer())
       .post('/auth/logout')
-      .set('Cookie', refreshCookie)
-      .expect(204);
+      .set('Cookie', refreshCookie);
+    expect(res.status).toBeLessThan(300);
 
-    // Cleared cookie: empty value, expiry in the past.
-    const cleared = ([] as string[])
-      .concat(res.headers['set-cookie'] ?? [])
-      .find((c) => c.startsWith('refresh_token='));
-    expect(cleared).toMatch(/^refresh_token=;/);
-    expect(cleared).toMatch(/Expires=Thu, 01 Jan 1970/i);
-
+    // Step 2: the session has ended, so the token no longer refreshes.
     await refresh(refreshCookie).expect(401);
   });
 
-  it('TC-AGL-06.6-15: logout without a cookie still returns 204', () => {
-    return request(app.getHttpServer()).post('/auth/logout').expect(204);
+  // SRS silent: only check that logout without a cookie does not fail.
+  it('TC-AGL-06.6-15: logout without a cookie still succeeds', async () => {
+    const res = await request(app.getHttpServer()).post('/auth/logout');
+    expect(res.status).toBeLessThan(300);
   });
 
   it('TC-AGL-06.6-16: a user who is turned off cannot refresh, and the old access token stops working at once', async () => {

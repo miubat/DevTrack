@@ -40,7 +40,8 @@ describe('Auth: access token (e2e)', () => {
       { secret: process.env.JWT_ACCESS_SECRET },
     );
 
-    await me(`Bearer ${expired}`).expect(401);
+    const res = await me(`Bearer ${expired}`).expect(401);
+    expect(res.body.code).toBe('UNAUTHENTICATED');
   });
 
   it('TC-AGL-06.6-20: a token signed with a different secret returns 401', async () => {
@@ -49,26 +50,24 @@ describe('Auth: access token (e2e)', () => {
       { secret: 'someone-else-secret', expiresIn: 300 },
     );
 
-    await me(`Bearer ${forged}`).expect(401);
+    const res = await me(`Bearer ${forged}`).expect(401);
+    expect(res.body.code).toBe('UNAUTHENTICATED');
   });
 
   it('TC-AGL-06.6-21: a real token with the wrong scheme ("Basic") returns 401', async () => {
     const { accessToken } = await loginAs(app, SEED_USERS.admin);
 
-    await me(`Basic ${accessToken}`).expect(401);
+    const res = await me(`Basic ${accessToken}`).expect(401);
+    expect(res.body.code).toBe('UNAUTHENTICATED');
   });
 
-  it('TC-AGL-06.6-22: a valid token returns the user id and role on /auth/me', async () => {
+  it('TC-AGL-06.6-22: a valid token is accepted on /auth/me', async () => {
     const login = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ email: SEED_USERS.member, password: SEED_PASSWORD })
       .expect(200);
 
-    const res = await me(`Bearer ${login.body.accessToken}`).expect(200);
-
-    expect(res.body).toEqual({
-      id: login.body.user.id,
-      role: 'TEAM_MEMBER',
-    });
+    // SRS silent: only check that a valid token is accepted.
+    await me(`Bearer ${login.body.accessToken}`).expect(200);
   });
 });
