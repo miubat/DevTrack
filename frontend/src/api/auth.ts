@@ -16,19 +16,51 @@ export interface LoginResult {
   accessToken: string;
 }
 
-// The message the user sees. "invalid" is always the same generic text,
-// so we never say whether the email or the password was wrong.
-export class LoginError extends Error {
-  readonly kind: 'invalid' | 'server';
+// invalid: wrong email or password (same text for both, so we never say which)
+// rate-limited: too many login requests from this address (429 RATE_LIMITED)
+// locked: too many failed logins for this account (429 TEMPORARILY_LOCKED)
+// server: anything else, or the backend cannot be reached
+export type LoginErrorKind = 'invalid' | 'rate-limited' | 'locked' | 'server';
 
-  constructor(kind: 'invalid' | 'server') {
-    super(
-      kind === 'invalid'
-        ? 'Invalid email or password.'
-        : 'Something went wrong. Please try again.',
-    );
+// The message the user sees.
+export class LoginError extends Error {
+  readonly kind: LoginErrorKind;
+
+  // waitSeconds comes from the Retry-After header (429 only).
+  constructor(kind: LoginErrorKind, waitSeconds?: number) {
+    super(loginErrorMessage(kind, waitSeconds));
     this.kind = kind;
   }
+}
+
+function loginErrorMessage(kind: LoginErrorKind, waitSeconds?: number): string {
+  switch (kind) {
+    case 'invalid':
+      return 'Invalid email or password.';
+    case 'rate-limited':
+      return `Too many login attempts. Please wait ${waitText(waitSeconds ?? 60)} and try again.`;
+    case 'locked':
+      return `Too many failed logins. Please wait ${waitText(waitSeconds ?? 15 * 60)} and try again.`;
+    default:
+      return 'Something went wrong. Please try again.';
+  }
+}
+
+// 45 -> "1 minute", 894 -> "15 minutes" (always rounded up)
+function waitText(seconds: number): string {
+  const minutes = Math.max(1, Math.ceil(seconds / 60));
+  return minutes === 1 ? '1 minute' : `${minutes} minutes`;
+}
+
+// Reads the 429 answer: which limit was hit, and how long to wait.
+async function tooManyRequests(res: Response): Promise<LoginError> {
+  const body = (await res.json().catch(() => ({}))) as { code?: string };
+  const retryAfter = Number(res.headers.get('Retry-After'));
+  const waitSeconds = retryAfter > 0 ? retryAfter : undefined;
+  return new LoginError(
+    body.code === 'TEMPORARILY_LOCKED' ? 'locked' : 'rate-limited',
+    waitSeconds,
+  );
 }
 
 export async function login(
@@ -49,6 +81,9 @@ export async function login(
 
   if (res.status === 400 || res.status === 401) {
     throw new LoginError('invalid');
+  }
+  if (res.status === 429) {
+    throw await tooManyRequests(res); // BUG-AGL-05.1-03 and 05.1-04
   }
   if (!res.ok) {
     throw new LoginError('server');
