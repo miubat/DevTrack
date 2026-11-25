@@ -26,41 +26,32 @@ export type LoginErrorKind = 'invalid' | 'rate-limited' | 'locked' | 'server';
 export class LoginError extends Error {
   readonly kind: LoginErrorKind;
 
-  // waitSeconds comes from the Retry-After header (429 only).
-  constructor(kind: LoginErrorKind, waitSeconds?: number) {
-    super(loginErrorMessage(kind, waitSeconds));
+  constructor(kind: LoginErrorKind) {
+    super(loginErrorMessage(kind));
     this.kind = kind;
   }
 }
 
-function loginErrorMessage(kind: LoginErrorKind, waitSeconds?: number): string {
+// The 429 messages never show a time: it would tell an attacker exactly when
+// the limit or the lock ends and when to start guessing again.
+function loginErrorMessage(kind: LoginErrorKind): string {
   switch (kind) {
     case 'invalid':
       return 'Invalid email or password.';
     case 'rate-limited':
-      return `Too many login attempts. Please wait ${waitText(waitSeconds ?? 60)} and try again.`;
+      return 'Too many login attempts. Please try again later.';
     case 'locked':
-      // No exact time here: it would tell an attacker when to start guessing again.
       return 'Too many failed logins. Please try again later.';
     default:
       return 'Something went wrong. Please try again.';
   }
 }
 
-// 45 -> "1 minute", 894 -> "15 minutes" (always rounded up)
-function waitText(seconds: number): string {
-  const minutes = Math.max(1, Math.ceil(seconds / 60));
-  return minutes === 1 ? '1 minute' : `${minutes} minutes`;
-}
-
-// Reads the 429 answer: which limit was hit, and how long to wait.
+// Reads the 429 answer: which limit was hit.
 async function tooManyRequests(res: Response): Promise<LoginError> {
   const body = (await res.json().catch(() => ({}))) as { code?: string };
-  const retryAfter = Number(res.headers.get('Retry-After'));
-  const waitSeconds = retryAfter > 0 ? retryAfter : undefined;
   return new LoginError(
     body.code === 'TEMPORARILY_LOCKED' ? 'locked' : 'rate-limited',
-    waitSeconds,
   );
 }
 

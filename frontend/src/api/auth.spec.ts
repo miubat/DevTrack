@@ -39,8 +39,8 @@ describe('login errors', () => {
     expect(error.message).toBe('Invalid email or password.');
   });
 
-  // BUG-AGL-05.1-04
-  it('429 RATE_LIMITED tells the user to wait, using Retry-After', async () => {
+  // BUG-AGL-05.1-04: a general message, never the exact time the limit ends.
+  it('429 RATE_LIMITED asks the user to try again later, without a time', async () => {
     fetchMock.mockResolvedValueOnce(
       reply(429, { code: 'RATE_LIMITED' }, { 'Retry-After': '45' }),
     );
@@ -49,8 +49,9 @@ describe('login errors', () => {
 
     expect(error.kind).toBe('rate-limited');
     expect(error.message).toBe(
-      'Too many login attempts. Please wait 1 minute and try again.',
+      'Too many login attempts. Please try again later.',
     );
+    expect(error.message).not.toMatch(/\d/); // no minutes or seconds
   });
 
   // BUG-AGL-05.1-03: a general message, never the exact time the lock ends.
@@ -66,16 +67,6 @@ describe('login errors', () => {
       'Too many failed logins. Please try again later.',
     );
     expect(error.message).not.toMatch(/\d/); // no minutes or seconds
-  });
-
-  it('429 RATE_LIMITED without Retry-After uses the default wait', async () => {
-    fetchMock.mockResolvedValueOnce(reply(429, { code: 'RATE_LIMITED' }));
-
-    const error = await loginError();
-
-    expect(error.message).toBe(
-      'Too many login attempts. Please wait 1 minute and try again.',
-    );
   });
 
   it('429 is never shown as "Something went wrong"', async () => {
