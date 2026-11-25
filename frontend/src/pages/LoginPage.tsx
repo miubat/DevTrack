@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { Navigate, useLocation, useNavigate } from 'react-router';
 import { login, LoginError } from '../api/auth.ts';
+import { returnPath } from '../auth/redirect.ts';
+import { useSession } from '../auth/useSession.ts';
 
 interface FieldErrors {
   email?: string;
@@ -30,6 +32,18 @@ function LoginPage() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [serverError, setServerError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { role, loading } = useSession();
+  // The page to open after login: the one the user asked for, or "/".
+  const target = returnPath(useLocation().state);
+
+  // Wait while a reload restores the session, so the form does not flash.
+  if (loading) {
+    return <p className="page">Loading...</p>;
+  }
+  // Already logged in: do not show the form again (BUG-AGL-05.1-02).
+  if (role) {
+    return <Navigate to={target} replace />;
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,8 +58,8 @@ function LoginPage() {
     setSubmitting(true);
     try {
       await login(email.trim(), password);
-      // Saving the session and role-based navigation come in the next AGL-05 tasks.
-      navigate('/');
+      // Back to the page the user asked for (BUG-AGL-05.3-01).
+      navigate(target, { replace: true });
     } catch (error) {
       setServerError(
         error instanceof LoginError

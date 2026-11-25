@@ -50,7 +50,12 @@ export class AuthService {
 
     if (!user || !user.is_active || !passwordOk) {
       await this.recordFailure(key);
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException({
+        statusCode: 401,
+        code: 'INVALID_CREDENTIALS',
+        message: 'Invalid email or password',
+        error: 'Unauthorized',
+      });
     }
 
     await this.db.query(`DELETE FROM failed_logins WHERE email = $1`, [key]);
