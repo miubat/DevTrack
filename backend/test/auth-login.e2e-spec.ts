@@ -14,6 +14,14 @@ describe('Auth: login (e2e)', () => {
   const login = (body: object) =>
     request(app.getHttpServer()).post('/auth/login').send(body);
 
+  // SRS §5.3: a failed login is 401 INVALID_CREDENTIALS (BUG-AGL-06.1-01, fixed).
+  const INVALID_CREDENTIALS = {
+    statusCode: 401,
+    code: 'INVALID_CREDENTIALS',
+    message: 'Invalid email or password',
+    error: 'Unauthorized',
+  };
+
   beforeAll(async () => {
     app = await createTestApp();
   });
@@ -46,6 +54,15 @@ describe('Auth: login (e2e)', () => {
     expect(cookie).toMatch(/HttpOnly/i);
     expect(cookie).toMatch(/SameSite=Strict/i);
     expect(cookie).toMatch(/Path=\/auth/i);
+
+    // FR-AUTH-01, NFR-SEC-02: access token 15 minutes, refresh cookie 7 days.
+    const payload = JSON.parse(
+      Buffer.from(res.body.accessToken.split('.')[1], 'base64url').toString(),
+    ) as { iat: number; exp: number };
+    expect(payload.exp - payload.iat).toBe(15 * 60);
+    const expires = Date.parse(/Expires=([^;]+)/i.exec(cookie!)![1]);
+    const sentAt = Date.parse(res.headers['date']);
+    expect(expires - sentAt).toBe(7 * 24 * 60 * 60 * 1000);
   });
 
   it('TC-AGL-06.6-02: email is not case-sensitive', async () => {
@@ -63,8 +80,7 @@ describe('Auth: login (e2e)', () => {
       password: 'Wrong-password-1',
     }).expect(401);
 
-    expect(res.body.message).toBe('Invalid email or password');
-    expect(res.body.accessToken).toBeUndefined();
+    expect(res.body).toEqual(INVALID_CREDENTIALS); // whole body, no token
   });
 
   it('TC-AGL-06.6-04: unknown email returns the same 401 message (no account guessing)', async () => {
@@ -73,21 +89,31 @@ describe('Auth: login (e2e)', () => {
       password: SEED_PASSWORD,
     }).expect(401);
 
-    expect(res.body.message).toBe('Invalid email or password');
+    expect(res.body).toEqual(INVALID_CREDENTIALS); // same body as case 03
   });
 
-  it('TC-AGL-06.6-05: a bad email format returns 400', () => {
-    return login({ email: 'not-an-email', password: SEED_PASSWORD }).expect(
+  // SRS §5.3: bad input is 400 VALIDATION_FAILED (BUG-AGL-06.1-01, fixed).
+  it('TC-AGL-06.6-05: a bad email format returns 400 VALIDATION_FAILED', async () => {
+    const res = await login({
+      email: 'not-an-email',
+      password: SEED_PASSWORD,
+    }).expect(400);
+
+    expect(res.body.code).toBe('VALIDATION_FAILED');
+  });
+
+  it('TC-AGL-06.6-06: an empty password returns 400 VALIDATION_FAILED', async () => {
+    const res = await login({ email: SEED_USERS.admin, password: '' }).expect(
       400,
     );
+
+    expect(res.body.code).toBe('VALIDATION_FAILED');
   });
 
-  it('TC-AGL-06.6-06: an empty password returns 400', () => {
-    return login({ email: SEED_USERS.admin, password: '' }).expect(400);
-  });
+  it('TC-AGL-06.6-07: an empty body returns 400 VALIDATION_FAILED', async () => {
+    const res = await login({}).expect(400);
 
-  it('TC-AGL-06.6-07: an empty body returns 400', () => {
-    return login({}).expect(400);
+    expect(res.body.code).toBe('VALIDATION_FAILED');
   });
 
   it('TC-AGL-06.6-08: an inactive user cannot log in (401)', async () => {
@@ -98,6 +124,6 @@ describe('Auth: login (e2e)', () => {
       password: SEED_PASSWORD,
     }).expect(401);
 
-    expect(res.body.message).toBe('Invalid email or password');
+    expect(res.body).toEqual(INVALID_CREDENTIALS);
   });
 });
