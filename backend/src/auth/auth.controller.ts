@@ -49,7 +49,12 @@ export class AuthController {
   ) {
     const token = req.cookies?.[REFRESH_COOKIE] as string | undefined;
     if (!token) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException({
+        statusCode: 401,
+        code: 'UNAUTHENTICATED',
+        message: 'Invalid refresh token',
+        error: 'Unauthorized',
+      });
     }
     const tokens = await this.sessions.refresh(token);
     this.setRefreshCookie(res, tokens);
