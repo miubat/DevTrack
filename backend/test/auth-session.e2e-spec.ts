@@ -106,9 +106,7 @@ describe('Auth: refresh and logout (e2e)', () => {
 });
 
 // SRS §5.3: a refused refresh or a refresh after logout is 401 UNAUTHENTICATED.
-// BUG-AGL-06.1-02 (open): these 401s have no `code` yet, so the tests are marked
-// `it.fails`. When the fix is merged they start passing, Vitest reports them,
-// and then `.fails` must be removed.
+// BUG-AGL-06.1-02 (fixed in PR #60): these tests were marked `it.fails` until then.
 describe('Auth: refresh and logout 401 body (BUG-AGL-06.1-02)', () => {
   let app: INestApplication<App>;
   const DEACTIVATED_USER = 'nila@devtrack.local';
@@ -133,7 +131,7 @@ describe('Auth: refresh and logout 401 body (BUG-AGL-06.1-02)', () => {
     await app.close();
   });
 
-  it.fails('TC-AGL-06.6-10: old refresh token after rotation', async () => {
+  it('TC-AGL-06.6-10: old refresh token after rotation', async () => {
     const { refreshCookie } = await loginAs(app, SEED_USERS.manager);
     await refresh(refreshCookie).expect(200);
 
@@ -141,17 +139,17 @@ describe('Auth: refresh and logout 401 body (BUG-AGL-06.1-02)', () => {
     expect(res.body).toEqual(UNAUTHENTICATED);
   });
 
-  it.fails('TC-AGL-06.6-12: refresh without a cookie', async () => {
+  it('TC-AGL-06.6-12: refresh without a cookie', async () => {
     const res = await refresh().expect(401);
     expect(res.body).toEqual(UNAUTHENTICATED);
   });
 
-  it.fails('TC-AGL-06.6-13: refresh with a made-up cookie', async () => {
+  it('TC-AGL-06.6-13: refresh with a made-up cookie', async () => {
     const res = await refresh('refresh_token=not-a-real-token').expect(401);
     expect(res.body).toEqual(UNAUTHENTICATED);
   });
 
-  it.fails('TC-AGL-06.6-14 (step 2): refresh after logout', async () => {
+  it('TC-AGL-06.6-14 (step 2): refresh after logout', async () => {
     const { refreshCookie } = await loginAs(app, SEED_USERS.admin);
     await request(app.getHttpServer())
       .post('/auth/logout')
@@ -162,14 +160,11 @@ describe('Auth: refresh and logout 401 body (BUG-AGL-06.1-02)', () => {
     expect(res.body).toEqual(UNAUTHENTICATED);
   });
 
-  it.fails(
-    'TC-AGL-06.6-16 (step 1): refresh by a deactivated user',
-    async () => {
-      const { refreshCookie } = await loginAs(app, DEACTIVATED_USER);
-      await setUserActive(app, DEACTIVATED_USER, false);
+  it('TC-AGL-06.6-16 (step 1): refresh by a deactivated user', async () => {
+    const { refreshCookie } = await loginAs(app, DEACTIVATED_USER);
+    await setUserActive(app, DEACTIVATED_USER, false);
 
-      const res = await refresh(refreshCookie).expect(401);
-      expect(res.body).toEqual(UNAUTHENTICATED);
-    },
-  );
+    const res = await refresh(refreshCookie).expect(401);
+    expect(res.body).toEqual(UNAUTHENTICATED);
+  });
 });
