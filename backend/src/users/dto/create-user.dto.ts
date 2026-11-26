@@ -1,4 +1,4 @@
-import { Transform, type TransformFnParams } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsIn,
@@ -9,10 +9,7 @@ import {
   MaxLength,
 } from 'class-validator';
 import { SYSTEM_ROLES, type SystemRole } from '../../auth/roles.decorator.js';
-
-// Spaces around the name and email are not checked, because they are not saved.
-const trim = ({ value }: TransformFnParams): unknown =>
-  typeof value === 'string' ? value.trim() : value;
+import { trim } from './trim.js';
 
 // POST /admin/users (FR-AUTH-02).
 export class CreateUserDto {
