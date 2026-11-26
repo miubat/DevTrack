@@ -6,6 +6,7 @@ import { Roles } from './roles.decorator.js';
 @Controller('access-check')
 export class AccessCheckController {
   @Get('any')
+  @Roles('ADMIN', 'PROJECT_MANAGER', 'TEAM_MEMBER')
   any() {
     return { ok: true };
   }
