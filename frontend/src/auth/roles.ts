@@ -10,7 +10,14 @@ export interface MenuItem {
   roles: Role[];
 }
 
-const ALL_ROLES: Role[] = ['ADMIN', 'PROJECT_MANAGER', 'TEAM_MEMBER'];
+export const ALL_ROLES: Role[] = ['ADMIN', 'PROJECT_MANAGER', 'TEAM_MEMBER'];
+
+// How each role is shown on screen.
+export const ROLE_LABELS: Record<Role, string> = {
+  ADMIN: 'Admin',
+  PROJECT_MANAGER: 'Project Manager',
+  TEAM_MEMBER: 'Team Member',
+};
 
 export const MENU: MenuItem[] = [
   { label: 'Projects', path: '/projects', roles: ALL_ROLES },
@@ -48,6 +55,12 @@ function tokenPayload(token: string | null): Record<string, unknown> | null {
 export function roleFromToken(token: string | null): Role | null {
   const role = tokenPayload(token)?.role;
   return ALL_ROLES.includes(role as Role) ? (role as Role) : null;
+}
+
+// The signed-in user's id ("sub").
+export function idFromToken(token: string | null): string | null {
+  const sub = tokenPayload(token)?.sub;
+  return typeof sub === 'string' && sub ? sub : null;
 }
 
 // The user's full name, for the user menu.

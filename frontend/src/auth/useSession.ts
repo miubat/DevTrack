@@ -2,6 +2,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import { refreshAccessToken } from '../api/auth.ts';
 import { getAccessToken, subscribeToken } from '../api/token.ts';
 import {
+  idFromToken,
   mustResetPasswordFromToken,
   nameFromToken,
   roleFromToken,
@@ -10,6 +11,8 @@ import {
 
 export interface Session {
   role: Role | null;
+  // the signed-in user's id
+  userId: string | null;
   // full name, for the user menu
   name: string | null;
   // AGL-08.4: the user must set a new password before using DevTrack
@@ -41,6 +44,7 @@ export function useSession(): Session {
 
   return {
     role: roleFromToken(token),
+    userId: idFromToken(token),
     name: nameFromToken(token),
     mustResetPassword: mustResetPasswordFromToken(token),
     loading: !token && restoring,

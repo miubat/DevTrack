@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  idFromToken,
   menusFor,
   mustResetPasswordFromToken,
   nameFromToken,
@@ -92,5 +93,13 @@ describe('nameFromToken', () => {
     );
     expect(nameFromToken(fakeToken({ sub: '4' }))).toBeNull();
     expect(nameFromToken(null)).toBeNull();
+  });
+});
+
+describe('idFromToken', () => {
+  it('reads the user id, or null when there is none', () => {
+    expect(idFromToken(fakeToken({ sub: '4', role: 'ADMIN' }))).toBe('4');
+    expect(idFromToken(fakeToken({ role: 'ADMIN' }))).toBeNull();
+    expect(idFromToken(null)).toBeNull();
   });
 });

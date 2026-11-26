@@ -11,6 +11,12 @@ import LoginPage from './pages/LoginPage.tsx';
 import NoAccessPage from './pages/NoAccessPage.tsx';
 import NotFoundPage from './pages/NotFoundPage.tsx';
 import SetPasswordPage from './pages/SetPasswordPage.tsx';
+import UsersPage from './pages/UsersPage.tsx';
+
+// Menu pages that are built; the others show "Coming soon".
+const PAGES: Record<string, () => React.JSX.Element> = {
+  '/admin/users': UsersPage, // AGL-08.5
+};
 
 function App() {
   return (
@@ -23,17 +29,20 @@ function App() {
           <Route path={SET_PASSWORD_PATH} element={<SetPasswordPage />} />
           <Route path="/no-access" element={<NoAccessPage />} />
           {/* One route per menu item, guarded by the same roles as the menu */}
-          {MENU.map((item) => (
-            <Route
-              key={item.path}
-              path={item.path}
-              element={
-                <RequireRole roles={item.roles}>
-                  <ComingSoonPage title={item.label} />
-                </RequireRole>
-              }
-            />
-          ))}
+          {MENU.map((item) => {
+            const Page = PAGES[item.path];
+            return (
+              <Route
+                key={item.path}
+                path={item.path}
+                element={
+                  <RequireRole roles={item.roles}>
+                    {Page ? <Page /> : <ComingSoonPage title={item.label} />}
+                  </RequireRole>
+                }
+              />
+            );
+          })}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </PasswordChangeGate>

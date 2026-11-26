@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { logout } from '../api/auth.ts';
-import type { Role } from '../auth/roles.ts';
-
-const ROLE_LABELS: Record<Role, string> = {
-  ADMIN: 'Admin',
-  PROJECT_MANAGER: 'Project Manager',
-  TEAM_MEMBER: 'Team Member',
-};
+import { ROLE_LABELS, type Role } from '../auth/roles.ts';
 
 // "Karim Hossain" → "KH"
 function initials(name: string): string {
