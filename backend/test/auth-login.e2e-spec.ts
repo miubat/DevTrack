@@ -61,7 +61,10 @@ describe('Auth: login (e2e)', () => {
     expect(payload.exp - payload.iat).toBe(15 * 60);
     const expires = Date.parse(/Expires=([^;]+)/i.exec(cookie!)![1]);
     const sentAt = Date.parse(res.headers['date']);
-    expect(expires - sentAt).toBe(7 * 24 * 60 * 60 * 1000);
+    // The cookie time and the Date header can fall in different seconds,
+    // so allow up to 2 seconds of difference.
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    expect(Math.abs(expires - sentAt - sevenDays)).toBeLessThanOrEqual(2000);
   });
 
   // SRS silent: only check that the login works.
