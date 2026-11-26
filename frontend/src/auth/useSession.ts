@@ -1,10 +1,19 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { refreshAccessToken } from '../api/auth.ts';
 import { getAccessToken, subscribeToken } from '../api/token.ts';
-import { roleFromToken, type Role } from './roles.ts';
+import {
+  mustResetPasswordFromToken,
+  nameFromToken,
+  roleFromToken,
+  type Role,
+} from './roles.ts';
 
 export interface Session {
   role: Role | null;
+  // full name, for the user menu
+  name: string | null;
+  // AGL-08.4: the user must set a new password before using DevTrack
+  mustResetPassword: boolean;
   // true while we are still trying to restore the session after a page reload
   loading: boolean;
 }
@@ -30,5 +39,10 @@ export function useSession(): Session {
     };
   }, [token]);
 
-  return { role: roleFromToken(token), loading: !token && restoring };
+  return {
+    role: roleFromToken(token),
+    name: nameFromToken(token),
+    mustResetPassword: mustResetPasswordFromToken(token),
+    loading: !token && restoring,
+  };
 }

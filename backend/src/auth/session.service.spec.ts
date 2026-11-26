@@ -26,13 +26,92 @@ describe('ttlToMs', () => {
 describe('SessionService', () => {
   it('start stores only the hash of the refresh token', async () => {
     const query = vi.fn().mockResolvedValue([{ id: '10' }]);
-    const tokens = await makeService(query).start({ id: '1', role: 'ADMIN' });
+    const tokens = await makeService(query).start('1');
 
     expect(tokens.accessToken).toBe('access-jwt');
     expect(tokens.refreshToken.length).toBeGreaterThan(20);
-    const params = query.mock.calls[0][1] as unknown[];
+    const insert = query.mock.calls.find(([sql]) =>
+      (sql as string).includes('INSERT INTO refresh_tokens'),
+    )!;
+    const params = insert[1] as unknown[];
     expect(params[1]).toBe(hashToken(tokens.refreshToken));
     expect(params[1]).not.toBe(tokens.refreshToken);
+  });
+
+  it('start opens a session and puts it in the access token with role, name and the temporary-password flag (AGL-08.4)', async () => {
+    const query = vi.fn((sql: string) =>
+      Promise.resolve(
+        sql.includes('FROM users')
+          ? [
+              {
+                id: '11',
+                role: 'TEAM_MEMBER',
+                full_name: 'Tania Akter',
+                is_active: true,
+                must_reset_pw: true,
+              },
+            ]
+          : sql.includes('INSERT INTO sessions')
+            ? [{ id: '7' }]
+            : [{ id: '10' }],
+      ),
+    );
+    const service = makeService(query as unknown as ReturnType<typeof vi.fn>);
+    const jwt = (
+      service as unknown as { jwt: { signAsync: ReturnType<typeof vi.fn> } }
+    ).jwt;
+
+    await service.start('11');
+
+    expect(jwt.signAsync.mock.calls[0][0]).toEqual({
+      sub: '11',
+      role: 'TEAM_MEMBER',
+      name: 'Tania Akter',
+      mustResetPassword: true,
+      sid: '7',
+    });
+    const insert = query.mock.calls.find(([sql]) =>
+      sql.includes('INSERT INTO refresh_tokens'),
+    )!;
+    expect(insert[1][3]).toBe('7'); // the refresh token belongs to the session
+  });
+
+  it('revokeAll ends every session and refresh token of the user', async () => {
+    const query = vi.fn().mockResolvedValue([]);
+    await makeService(query).revokeAll('4');
+
+    const sqls = query.mock.calls.map(([sql]) => sql as string);
+    expect(sqls[0]).toContain('UPDATE sessions SET revoked_at = now()');
+    expect(sqls[1]).toContain('UPDATE refresh_tokens SET revoked_at = now()');
+    expect(query.mock.calls.every(([, params]) => params[0] === '4')).toBe(
+      true,
+    );
+  });
+
+  it('logout ends the session of the refresh token (AGL-08.4)', async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce([{ session_id: '7' }])
+      .mockResolvedValueOnce([]);
+    await makeService(query).logout('some-token');
+
+    expect(query.mock.calls[1][0]).toContain('UPDATE sessions SET revoked_at');
+    expect(query.mock.calls[1][1]).toEqual(['7']);
+  });
+
+  it('refresh only works while the session is open, and keeps the session', async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce([{ id: '5', user_id: '1', session_id: '7' }]) // revoke old
+      .mockResolvedValueOnce([
+        { id: '1', role: 'ADMIN', full_name: 'Admin', is_active: true },
+      ]) // user
+      .mockResolvedValueOnce([{ id: '6' }]) // insert new
+      .mockResolvedValueOnce([]); // link old -> new
+    await makeService(query).refresh('good-token');
+
+    expect(query.mock.calls[0][0]).toContain('s.revoked_at IS NULL');
+    expect(query.mock.calls[2][1][3]).toBe('7');
   });
 
   it('refresh rejects an old or unknown token with 401', async () => {
@@ -45,7 +124,7 @@ describe('SessionService', () => {
   it('refresh revokes the old token and issues a new one', async () => {
     const query = vi
       .fn()
-      .mockResolvedValueOnce([{ id: '5', user_id: '1' }]) // revoke old
+      .mockResolvedValueOnce([{ id: '5', user_id: '1', session_id: '7' }]) // revoke old
       .mockResolvedValueOnce([{ id: '1', role: 'ADMIN', is_active: true }]) // user
       .mockResolvedValueOnce([{ id: '6' }]) // insert new
       .mockResolvedValueOnce([]); // link old -> new

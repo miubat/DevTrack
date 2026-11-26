@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { login, LoginError } from './auth.ts';
-import { setAccessToken } from './token.ts';
+import { login, LoginError, logout } from './auth.ts';
+import { getAccessToken, setAccessToken } from './token.ts';
 
 const fetchMock = vi.fn();
 
@@ -85,5 +85,28 @@ describe('login errors', () => {
 
     expect(error.kind).toBe('server');
     expect(error.message).toBe('Something went wrong. Please try again.');
+  });
+});
+
+describe('logout', () => {
+  it('calls the server with the cookie and forgets the access token', async () => {
+    setAccessToken('some-token');
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+    await logout();
+
+    const [path, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(path).toBe('/auth/logout');
+    expect(init).toMatchObject({ method: 'POST', credentials: 'include' });
+    expect(getAccessToken()).toBeNull();
+  });
+
+  it('still signs out on this device when the server cannot be reached', async () => {
+    setAccessToken('some-token');
+    fetchMock.mockRejectedValueOnce(new TypeError('network down'));
+
+    await logout();
+
+    expect(getAccessToken()).toBeNull();
   });
 });
