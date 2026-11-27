@@ -14,6 +14,7 @@ import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { Public } from './public.decorator.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
+import { Roles } from './roles.decorator.js';
 import { LoginProtection } from './login-protection.js';
 import { SessionService } from './session.service.js';
 import { REFRESH_COOKIE, setRefreshCookie } from './refresh-cookie.js';
@@ -74,6 +75,7 @@ export class AuthController {
   // Test route for the guard. The profile task (GET /me) can replace it later.
   @Get('me')
   @UseGuards(JwtAuthGuard)
+  @Roles('ADMIN', 'PROJECT_MANAGER', 'TEAM_MEMBER')
   me(@Req() req: Request & { user?: { id: string; role: string } }) {
     return req.user;
   }
