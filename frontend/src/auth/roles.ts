@@ -30,18 +30,33 @@ export function menusFor(role: Role | null): MenuItem[] {
   return MENU.filter((item) => item.roles.includes(role));
 }
 
-// Reads the role from the access token payload ({ sub, role }).
+// Reads the access token payload ({ sub, role, name, mustResetPassword, sid }).
 // Safe to read here: the token is not secret to its owner, and the server verifies it.
-export function roleFromToken(token: string | null): Role | null {
+function tokenPayload(token: string | null): Record<string, unknown> | null {
   if (!token) {
     return null;
   }
   try {
     const payload = token.split('.')[1];
     const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-    const role = (JSON.parse(json) as { role?: unknown }).role;
-    return ALL_ROLES.includes(role as Role) ? (role as Role) : null;
+    return JSON.parse(json) as Record<string, unknown>;
   } catch {
     return null; // broken token: treat as logged out
   }
+}
+
+export function roleFromToken(token: string | null): Role | null {
+  const role = tokenPayload(token)?.role;
+  return ALL_ROLES.includes(role as Role) ? (role as Role) : null;
+}
+
+// The user's full name, for the user menu.
+export function nameFromToken(token: string | null): string | null {
+  const name = tokenPayload(token)?.name;
+  return typeof name === 'string' && name ? name : null;
+}
+
+// AGL-08.4: true while the user still has the temporary password from the admin.
+export function mustResetPasswordFromToken(token: string | null): boolean {
+  return tokenPayload(token)?.mustResetPassword === true;
 }

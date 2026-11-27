@@ -1,5 +1,5 @@
-// Login and refresh API calls (FR-AUTH-01, FR-AUTH-03).
-// Backend: POST /auth/login, POST /auth/refresh.
+// Login, refresh and logout API calls (FR-AUTH-01, FR-AUTH-03).
+// Backend: POST /auth/login, POST /auth/refresh, POST /auth/logout.
 
 import { setAccessToken } from './token.ts';
 
@@ -121,4 +121,16 @@ async function doRefresh(): Promise<RefreshResult> {
   } catch {
     return 'error'; // network down
   }
+}
+
+// Ends the session: the server revokes the refresh token and clears the cookie.
+// The app forgets the access token even if the server cannot be reached, so the
+// user is always signed out on this device.
+export async function logout(): Promise<void> {
+  try {
+    await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+  } catch {
+    // network down: still sign out here
+  }
+  setAccessToken(null);
 }

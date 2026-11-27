@@ -16,9 +16,8 @@ import { Public } from './public.decorator.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { Roles } from './roles.decorator.js';
 import { LoginProtection } from './login-protection.js';
-import { SessionService, SessionTokens } from './session.service.js';
-
-const REFRESH_COOKIE = 'refresh_token';
+import { SessionService } from './session.service.js';
+import { REFRESH_COOKIE, setRefreshCookie } from './refresh-cookie.js';
 
 @Controller('auth')
 export class AuthController {
@@ -36,8 +35,8 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const user = await this.auth.login(dto.email, dto.password);
-    const tokens = await this.sessions.start({ id: user.id, role: user.role });
-    this.setRefreshCookie(res, tokens);
+    const tokens = await this.sessions.start(user.id);
+    setRefreshCookie(res, tokens);
     return { user, accessToken: tokens.accessToken };
   }
 
@@ -58,7 +57,7 @@ export class AuthController {
       });
     }
     const tokens = await this.sessions.refresh(token);
-    this.setRefreshCookie(res, tokens);
+    setRefreshCookie(res, tokens);
     return { accessToken: tokens.accessToken };
   }
 
@@ -79,15 +78,5 @@ export class AuthController {
   @Roles('ADMIN', 'PROJECT_MANAGER', 'TEAM_MEMBER')
   me(@Req() req: Request & { user?: { id: string; role: string } }) {
     return req.user;
-  }
-
-  private setRefreshCookie(res: Response, tokens: SessionTokens) {
-    res.cookie(REFRESH_COOKIE, tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/auth',
-      expires: tokens.refreshExpiresAt,
-    });
   }
 }
