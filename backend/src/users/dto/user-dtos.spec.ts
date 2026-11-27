@@ -3,6 +3,7 @@ import { validateSync } from 'class-validator';
 import { describe, expect, it } from 'vitest';
 import { CreateUserDto } from './create-user.dto.js';
 import { ListUsersDto } from './list-users.dto.js';
+import { UpdateUserDto } from './update-user.dto.js';
 
 function errorsFor<T extends object>(
   cls: new () => T,
@@ -105,5 +106,32 @@ describe('ListUsersDto', () => {
       'page',
     ]);
     expect(errorsFor(ListUsersDto, { page: '9007199254740991' })).toEqual([]);
+  });
+});
+
+describe('UpdateUserDto', () => {
+  it('accepts any one field, and an empty body (the service refuses that)', () => {
+    expect(errorsFor(UpdateUserDto, {})).toEqual([]);
+    expect(errorsFor(UpdateUserDto, { fullName: ' Karim ' })).toEqual([]);
+    expect(errorsFor(UpdateUserDto, { role: 'PROJECT_MANAGER' })).toEqual([]);
+    expect(errorsFor(UpdateUserDto, { isActive: false })).toEqual([]);
+  });
+
+  it('refuses null, a blank or too long name, an unknown role and a non-boolean isActive', () => {
+    expect(
+      errorsFor(UpdateUserDto, {
+        fullName: null,
+        role: null,
+        isActive: null,
+      }).sort(),
+    ).toEqual(['fullName', 'isActive', 'role']);
+    expect(errorsFor(UpdateUserDto, { fullName: '   ' })).toEqual(['fullName']);
+    expect(errorsFor(UpdateUserDto, { fullName: 'a'.repeat(121) })).toEqual([
+      'fullName',
+    ]);
+    expect(errorsFor(UpdateUserDto, { role: 'BOSS' })).toEqual(['role']);
+    expect(errorsFor(UpdateUserDto, { isActive: 'false' })).toEqual([
+      'isActive',
+    ]);
   });
 });
