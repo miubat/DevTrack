@@ -7,7 +7,9 @@ import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { Public } from './public.decorator.js';
 
 const jwt = new JwtService({});
-let rows: { is_active: boolean }[] = [{ is_active: true }];
+let rows: { is_active: boolean; role?: string }[] = [
+  { is_active: true, role: 'ADMIN' },
+];
 const db = { query: () => Promise.resolve(rows) } as unknown as DatabaseService;
 const guard = new JwtAuthGuard(jwt, new Reflector(), db);
 
@@ -36,6 +38,25 @@ describe('JwtAuthGuard', () => {
     const { req, context } = ctx(() => undefined, `Bearer ${token}`);
     await expect(guard.canActivate(context)).resolves.toBe(true);
     expect(req.user).toEqual({ id: '1', role: 'ADMIN' });
+  });
+
+  it('rejects a token whose role was changed since login (AGL-08.2)', async () => {
+    const token = await jwt.signAsync(
+      { sub: '1', role: 'ADMIN' },
+      { secret: 'test-secret', expiresIn: 60 },
+    );
+    rows = [{ is_active: true, role: 'TEAM_MEMBER' }];
+    try {
+      const error = await guard
+        .canActivate(ctx(() => undefined, `Bearer ${token}`).context)
+        .catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(UnauthorizedException);
+      expect((error as UnauthorizedException).getResponse()).toMatchObject({
+        code: 'UNAUTHENTICATED',
+      });
+    } finally {
+      rows = [{ is_active: true, role: 'ADMIN' }];
+    }
   });
 
   it('rejects an expired access token with 401 UNAUTHENTICATED', async () => {
@@ -80,7 +101,7 @@ describe('JwtAuthGuard', () => {
         code: 'UNAUTHENTICATED',
       });
     } finally {
-      rows = [{ is_active: true }];
+      rows = [{ is_active: true, role: 'ADMIN' }];
     }
   });
 
@@ -95,7 +116,7 @@ describe('JwtAuthGuard', () => {
         guard.canActivate(ctx(() => undefined, `Bearer ${token}`).context),
       ).rejects.toThrow(UnauthorizedException);
     } finally {
-      rows = [{ is_active: true }];
+      rows = [{ is_active: true, role: 'ADMIN' }];
     }
   });
 

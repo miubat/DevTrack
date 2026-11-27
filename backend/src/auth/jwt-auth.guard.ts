@@ -55,11 +55,17 @@ export class JwtAuthGuard implements CanActivate {
 
     // BUG-AGL-06.3-01 (NFR-SEC-02): deactivation must cut access at once, so a valid
     // token is not enough. The user must still exist and be active.
-    const rows = await this.db.query<{ is_active: boolean }>(
-      `SELECT is_active FROM users WHERE id = $1`,
+    const rows = await this.db.query<{ is_active: boolean; role: string }>(
+      `SELECT is_active, role FROM users WHERE id = $1`,
       [payload.sub],
     );
     if (!rows[0]?.is_active) {
+      throw this.unauthenticated('Invalid or expired token');
+    }
+
+    // AGL-08.2: after an admin changes the role, tokens with the old role are
+    // refused, so the user must log in again and gets the new role everywhere.
+    if (rows[0].role !== payload.role) {
       throw this.unauthenticated('Invalid or expired token');
     }
 
